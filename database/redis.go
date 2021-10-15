@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"github.com/go-redis/redis"
 	"log"
 	"os"
@@ -17,7 +18,7 @@ func InitRedis() {
 		redisAddr = "localhost:6379"
 	}
 	adminPass := os.Getenv("ADMIN_PASS")
-	if adminPass == ""{
+	if adminPass == "" {
 		adminPass = "admin"
 	}
 	client = redis.NewClient(&redis.Options{
@@ -39,14 +40,15 @@ func InitRedis() {
 
 type FlagStruct struct {
 	Flag    string
+	ID      string
 	Team    string
 	Service string
 }
 
-func PutFlag(flagStruct *FlagStruct) error {
-	status := client.HMSet(flagStruct.Flag, map[string]interface{}{
-		"team":    flagStruct.Team,
-		"service": flagStruct.Service,
+func (f *FlagStruct) PutFlag() error {
+	status := client.HMSet(f.Flag, map[string]interface{}{
+		"team":    f.Team,
+		"service": f.Service,
 	})
 	log.Println(status)
 	return nil
@@ -59,6 +61,33 @@ func GetInfo(flag string) ([]interface{}, error) {
 	}
 	return result, nil
 }
+
+func (f *FlagStruct) Put() error {
+	index := fmt.Sprintf("%s_%s", f.Team, f.Service)
+	status := client.HMSet(index, map[string]interface{}{
+		f.ID: f.Flag,
+	})
+	log.Println(status)
+	return nil
+}
+
+func (f *FlagStruct) GetKeys() (result []string, err error) {
+	index := fmt.Sprintf("%s_%s", f.Team, f.Service)
+	result, err = client.HKeys(index).Result()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+func (f *FlagStruct) GetFlag() (value string, err error) {
+	index := fmt.Sprintf("%s_%s", f.Team, f.Service)
+	value, err = client.HGet(index, f.ID).Result()
+	if err != nil {
+		return "", err
+	}
+	return value, nil
+}
+
 func RemoveAllFlags() {
 	client.FlushDB()
 }
