@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/Ivanhahanov/ad-infrastructure-api/config"
-	"github.com/Ivanhahanov/ad-infrastructure-api/database"
-	"github.com/Ivanhahanov/ad-infrastructure-api/models"
-	"github.com/Ivanhahanov/ad-infrastructure-api/routers"
 	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/explabs/ad-ctf-paas-api/config"
+	"github.com/explabs/ad-ctf-paas-api/database"
+	"github.com/explabs/ad-ctf-paas-api/models"
+	"github.com/explabs/ad-ctf-paas-api/routers"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -34,9 +34,9 @@ func isAdmin() gin.HandlerFunc {
 }
 
 func AddAdmin() {
-	teams, _ :=database.GetUsers()
-	for _, team:= range teams{
-		if team.Name == "admin"{
+	teams, _ := database.GetUsers()
+	for _, team := range teams {
+		if team.Name == "admin" {
 			return
 		}
 	}
@@ -46,9 +46,9 @@ func AddAdmin() {
 	}
 	hash, _ := routers.HashPassword(password)
 	database.CreateTeam(&models.Team{
-		ID:   primitive.NewObjectID(),
-		Name: "admin",
-		Hash: hash,
+		ID:        primitive.NewObjectID(),
+		Name:      "admin",
+		Hash:      hash,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	})

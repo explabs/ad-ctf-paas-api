@@ -1,8 +1,8 @@
 package routers
 
 import (
-	"github.com/Ivanhahanov/ad-infrastructure-api/database"
-	"github.com/Ivanhahanov/ad-infrastructure-api/models"
+	"github.com/explabs/ad-ctf-paas-api/database"
+	"github.com/explabs/ad-ctf-paas-api/models"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"

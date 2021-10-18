@@ -2,8 +2,8 @@ package routers
 
 import (
 	"fmt"
-	"github.com/Ivanhahanov/ad-infrastructure-api/database"
-	"github.com/Ivanhahanov/ad-infrastructure-api/walker"
+	"github.com/explabs/ad-ctf-paas-api/database"
+	"github.com/explabs/ad-ctf-paas-api/walker"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"

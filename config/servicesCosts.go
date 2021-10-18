@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/Ivanhahanov/ad-infrastructure-api/models"
+	"github.com/explabs/ad-ctf-paas-api/models"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )

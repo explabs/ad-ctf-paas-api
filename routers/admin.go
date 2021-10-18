@@ -2,7 +2,7 @@ package routers
 
 import (
 	"fmt"
-	"github.com/Ivanhahanov/ad-infrastructure-api/database"
+	"github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/gin-gonic/gin"
 	"net"
 	"net/http"

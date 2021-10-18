@@ -2,9 +2,9 @@ package routers
 
 import (
 	"fmt"
-	"github.com/Ivanhahanov/ad-infrastructure-api/config"
-	"github.com/Ivanhahanov/ad-infrastructure-api/database"
-	"github.com/Ivanhahanov/ad-infrastructure-api/models"
+	"github.com/explabs/ad-ctf-paas-api/config"
+	"github.com/explabs/ad-ctf-paas-api/database"
+	"github.com/explabs/ad-ctf-paas-api/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"

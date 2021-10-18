@@ -2,8 +2,8 @@ package walker
 
 import (
 	"fmt"
-	"github.com/Ivanhahanov/ad-infrastructure-api/database"
-	"github.com/Ivanhahanov/ad-infrastructure-api/walker/providers"
+	"github.com/explabs/ad-ctf-paas-api/database"
+	"github.com/explabs/ad-ctf-paas-api/walker/providers"
 	"log"
 	"reflect"
 	"strings"

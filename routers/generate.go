@@ -2,8 +2,8 @@ package routers
 
 import (
 	"fmt"
-	"github.com/Ivanhahanov/ad-infrastructure-api/config"
-	"github.com/Ivanhahanov/ad-infrastructure-api/database"
+	"github.com/explabs/ad-ctf-paas-api/config"
+	"github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"

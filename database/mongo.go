@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"errors"
-	"github.com/Ivanhahanov/ad-infrastructure-api/models"
+	"github.com/explabs/ad-ctf-paas-api/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
