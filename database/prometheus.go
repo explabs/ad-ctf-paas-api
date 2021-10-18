@@ -3,7 +3,7 @@ package database
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Ivanhahanov/ad-infrastructure-api/config"
+	"github.com/explabs/ad-ctf-paas-api/config"
 	"io/ioutil"
 	"log"
 	"net/http"
