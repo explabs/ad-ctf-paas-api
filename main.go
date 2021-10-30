@@ -207,11 +207,15 @@ func main() {
 		{
 			services.GET("/teams/info", routers.CountTeamsHandler)
 		}
-		v1.GET("/checker",
-			gin.BasicAuth(gin.Accounts{
-				"checker": config.Conf.CheckerPassword,
-			}),
-			routers.CheckerHandler)
+		walker := v1.Group("/game")
+		walker.Use(gin.BasicAuth(gin.Accounts{
+			"checker": config.Conf.CheckerPassword,
+		}))
+		{
+			walker.GET("/checker",routers.CheckerHandler)
+			walker.GET("/news",routers.NewsHandler)
+			walker.GET("/exploit",routers.ExploitHandler)
+		}
 	}
 	router.Run(":8080")
 }

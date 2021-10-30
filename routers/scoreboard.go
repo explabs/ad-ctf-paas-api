@@ -68,7 +68,7 @@ func ShowScoreboard(c *gin.Context) {
 		for serviceName, values := range teamHistory.RoundsHistory {
 			sService := ScoreboardServiceJson{}
 			var totalServiceOKStatus = 0.0
-			for i := 1; i < len(values); i++ {
+			for i := 0; i < len(values)-1; i++ {
 				if values[i] == teamHistory.Sources {
 					status = "OK"
 					totalServiceOKStatus += 1

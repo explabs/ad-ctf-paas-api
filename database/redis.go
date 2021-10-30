@@ -5,12 +5,14 @@ import (
 	"github.com/go-redis/redis"
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
 var client *redis.Client
 var timeClient *redis.Client
 var submitClient *redis.Client
+var roundsClient *redis.Client
 
 func InitRedis() {
 	redisAddr := os.Getenv("REDIS")
@@ -35,6 +37,11 @@ func InitRedis() {
 		Addr:     redisAddr,
 		Password: adminPass,
 		DB:       2,
+	})
+	roundsClient = redis.NewClient(&redis.Options{
+		Addr:     redisAddr,
+		Password: adminPass,
+		DB:       3,
 	})
 }
 
@@ -124,4 +131,19 @@ func GetSubmitFlags(flag string) ([]interface{}, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func GetRound() (int, error) {
+	round, err := roundsClient.Get("round").Result()
+	if err != nil {
+		return 0, err
+	}
+	intRound, err := strconv.Atoi(round)
+	if err != nil {
+		return 0, err
+	}
+	return intRound, nil
+}
+func IncrRound() {
+	roundsClient.Incr("round")
 }

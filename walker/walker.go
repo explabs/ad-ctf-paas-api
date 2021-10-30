@@ -18,7 +18,7 @@ func formatLabels(labels map[string]string) string {
 }
 func PutFlags() (map[string]int, error) {
 	var c providers.ConfigProviders
-	err := c.Parse("walker.yml")
+	err := c.Parse("checker.yml")
 	if err != nil {
 		return nil, err
 	}
@@ -29,43 +29,17 @@ func PutFlags() (map[string]int, error) {
 	}
 	for _, team := range teams {
 		for _, service := range c.Service {
-			//if !reflect.ValueOf(service.HTTP).IsZero() {
-			//	for _, http := range service.HTTP {
-			//		metricLabels := map[string]string{
-			//			"proto": "http",
-			//			"team": team.Name,
-			//			"service": service.Name,
-			//			"route": http.Route,
-			//		}
-			//		metricNameStr := fmt.Sprintf("walker{%s}", formatLabels(metricLabels))
-			//		flag := providers.GenerateFlag(20)
-			//		//response, httpErr := http.Run(team.Address, flag)
-			//		response, _, httpErr := http.Run("localhost", flag)
-			//		if httpErr != nil {
-			//			log.Println(team.Address, team.Name, service.Name, httpErr)
-			//			promResult[metricNameStr] = 0
-			//			break
-			//		}
-			//		if response.StatusCode == 200 {
-			//			database.PutFlag(&database.FlagStruct{
-			//				Flag:    flag,
-			//				Service: service.Name,
-			//				Team:    team.Name,
-			//			})
-			//			promResult[metricNameStr] = 1
-			//		}
-			//	}
-			//}
-			if !reflect.ValueOf(service.Script).IsZero() {
+			if !reflect.ValueOf(service.Put).IsZero() {
 				var f database.FlagStruct
 				f.Team = team.Name
 				f.Service = service.Name
-				for _, script := range service.Script {
+				for _, script := range service.Put {
 
 					metricLabels := map[string]string{
 						"team":    team.Name,
 						"service": service.Name,
 						"script":  script.Name,
+						"action":  "put",
 					}
 					metricNameStr := fmt.Sprintf("checker{%s}", formatLabels(metricLabels))
 					promResult[metricNameStr] = 0
@@ -100,54 +74,25 @@ func CheckFlags() (map[string]int, error) {
 	}
 	for _, team := range teams {
 		for _, service := range c.Service {
-			//if !reflect.ValueOf(service.HTTP).IsZero() {
-			//	for _, http := range service.HTTP {
-			//		metricLabels := map[string]string{
-			//			"proto": "http",
-			//			"team": team.Name,
-			//			"service": service.Name,
-			//			"route": http.Route,
-			//		}
-			//		metricNameStr := fmt.Sprintf("checker{%s}", formatLabels(metricLabels))
-			//		//response, httpErr := http.Run(team.Address, "")
-			//		_, body, httpErr := http.Run("localhost", "")
-			//		if httpErr != nil {
-			//			log.Println(team.Address, team.Name, service.Name, httpErr)
-			//			promResult[metricNameStr] = 0
-			//			break
-			//		}
-			//		log.Println(string(body))
-			//		flag, redisErr := database.GetInfo(string(body))
-			//		if redisErr != nil {
-			//			log.Println(team.Address, team.Name, service.Name, redisErr)
-			//		}
-			//		log.Println(flag)
-			//		promResult[metricNameStr] = 0
-			//		if flag[0] == team.Name && flag[1] == service.Name {
-			//			promResult[metricNameStr] = 1
-			//		}
-			//	}
-			//}
-			if !reflect.ValueOf(service.Script).IsZero() {
+			if !reflect.ValueOf(service.Check).IsZero() {
 				var f database.FlagStruct
 				f.Team = team.Name
 				f.Service = service.Name
 				keys, _ := f.GetKeys()
-				for i, script := range service.Script {
+				for i, script := range service.Check {
 					if len(keys) <= i {
 						break
 					}
 					f.ID = keys[i]
 
-
 					metricLabels := map[string]string{
 						"team":    team.Name,
 						"service": service.Name,
 						"script":  script.Name,
+						"action":  "check",
 					}
 					metricNameStr := fmt.Sprintf("checker{%s}", formatLabels(metricLabels))
 					promResult[metricNameStr] = 0
-
 
 					// response, _ := script.RunScript(team.Address, flag)
 					response, _ := script.RunScript("localhost", f.ID)
@@ -159,5 +104,49 @@ func CheckFlags() (map[string]int, error) {
 			}
 		}
 	}
+	return promResult, nil
+}
+func Exploitation() (map[string]int, error) {
+	var r providers.RoundsStruct
+	err := r.Parse("exploits.yml")
+	if err != nil {
+		return nil, err
+	}
+	promResult := make(map[string]int)
+	teams, dbErr := database.GetTeams()
+	if dbErr != nil {
+		return nil, dbErr
+	}
+	for _, team := range teams {
+		round, _ := database.GetRound()
+		if round > len(r.Rounds)-1 {
+			round = len(r.Rounds) - 1
+		}
+		log.Println(r)
+		for i := 0; i <= round; i++ {
+			round := r.Rounds[i]
+			log.Println(r)
+			if !reflect.ValueOf(round.Exploits).IsZero() {
+				for _, exploit := range round.Exploits {
+					metricLabels := map[string]string{
+						"team":    team.Name,
+						"service": exploit.ServiceName,
+						"script":  exploit.ScriptName,
+						"action":  "exploit",
+					}
+					metricNameStr := fmt.Sprintf("exploit{%s}", formatLabels(metricLabels))
+					promResult[metricNameStr] = 0
+
+					// response, _ := script.RunScript(team.Address, "")
+					response, _ := exploit.RunScript("localhost", "")
+					if response == "1"{
+						promResult[metricNameStr] = 1
+						database.AddDefenceFlag(team.Name, exploit.ServiceName)
+					}
+				}
+			}
+		}
+	}
+	database.IncrRound()
 	return promResult, nil
 }

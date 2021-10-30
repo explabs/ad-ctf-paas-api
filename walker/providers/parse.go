@@ -12,25 +12,15 @@ type ConfigProviders struct {
 }
 
 type Service struct {
-	Name   string   `yaml:"name"`
-	HTTP   []HTTP   `yaml:"http"`
-	Script []Script `yaml:"scripts"`
+	Name  string   `yaml:"name"`
+	Put   []Script `yaml:"put"`
+	Check []Script `yaml:"check"`
 }
 
 type Team struct {
 	Name   string `yaml:"name"`
 	Domain string `yaml:"domain"`
 	IP     string `yaml:"ip"`
-}
-
-type HTTP struct {
-	Route    string                 `yaml:"route"`
-	Schema   string                 `yaml:"schema"`
-	Method   string                 `yaml:"method"`
-	Port     int                    `yaml:"port"`
-	Params   map[string]string      `yaml:"params"`
-	Header   map[string]string      `yaml:"header"`
-	JsonBody map[string]interface{} `yaml:"json_body"`
 }
 
 type Script struct {
@@ -46,23 +36,30 @@ func (p *ConfigProviders) Parse(filename string) error {
 	if err != nil {
 		return fmt.Errorf("in file %q: %v", filename, err)
 	}
-	for i, team := range p.Service {
-		for j, http := range team.HTTP {
+	return nil
+}
 
-			if http.Route == "" {
-				p.Service[i].HTTP[j].Route = "/"
-			}
-			if http.Port == 0 {
-				p.Service[i].HTTP[j].Port = 80
-			}
+type RoundsStruct struct {
+	Rounds []Round `yaml:"rounds"`
+}
+type Round struct {
+	Exploits []Exploit `yaml:"exploits"`
+	News     string    `yaml:"news"`
+	HintNews string    `yaml:"hint_news"`
+}
+type Exploit struct {
+	ServiceName string `yaml:"service_name"`
+	ScriptName  string `yaml:"script_name"`
+}
 
-			if http.Schema == "" {
-				p.Service[i].HTTP[j].Schema = "http"
-			}
-			if http.Method == "" {
-				p.Service[i].HTTP[j].Method = "get"
-			}
-		}
+func (r *RoundsStruct) Parse(filename string) error {
+	buf, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	err = yaml.Unmarshal(buf, &r)
+	if err != nil {
+		return fmt.Errorf("in file %q: %v", filename, err)
 	}
 	return nil
 }

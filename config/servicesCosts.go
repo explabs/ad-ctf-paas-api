@@ -12,7 +12,7 @@ type ServicesCost struct {
 }
 
 func (s *ServicesCost) Load() error {
-	buf, err := ioutil.ReadFile("services_costs.yml")
+	buf, err := ioutil.ReadFile("checker.yml")
 	if err != nil {
 		return err
 	}

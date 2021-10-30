@@ -117,7 +117,7 @@ type TeamHistory struct {
 }
 
 func GetTeamHistory(teamName string) TeamHistory {
-	query := fmt.Sprintf("{team=\"%s\"}", teamName)
+	query := fmt.Sprintf("checker{team=\"%s\"}", teamName)
 	startTime, _ := GetStartTimeStamp()
 	shiftTime, _ := time.Parse(time.RFC3339, startTime)
 	log.Println(shiftTime)
@@ -150,7 +150,7 @@ func GetTeamHistory(teamName string) TeamHistory {
 }
 
 func GetTeamStatus(teamName string) (map[string]float64, float64) {
-	query := fmt.Sprintf("{team=\"%s\"}", teamName)
+	query := fmt.Sprintf("checker{team=\"%s\"}", teamName)
 	//lastTime, _ := GetLastTimeStamp()
 	queryRanges := getPrometheusState(query, time.Now().Format(time.RFC3339))
 	fmt.Println(queryRanges)
