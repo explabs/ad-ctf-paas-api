@@ -122,10 +122,8 @@ func Exploitation() (map[string]int, error) {
 		if round > len(r.Rounds)-1 {
 			round = len(r.Rounds) - 1
 		}
-		log.Println(r)
 		for i := 0; i <= round; i++ {
 			round := r.Rounds[i]
-			log.Println(r)
 			if !reflect.ValueOf(round.Exploits).IsZero() {
 				for _, exploit := range round.Exploits {
 					metricLabels := map[string]string{
