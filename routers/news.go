@@ -1,32 +1,27 @@
 package routers
 
 import (
+	"fmt"
+	"github.com/explabs/ad-ctf-paas-api/database"
 	news_bot "github.com/explabs/ad-ctf-paas-api/news-bot"
+	"github.com/explabs/ad-ctf-paas-api/walker/providers"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
-	"os"
 )
 
 func NewsHandler(c *gin.Context) {
-	tb := news_bot.TelegramBot{
-		TelegramBotToken: os.Getenv("TELEGRAM_BOT_TOKEN"),
-		ChatID:           os.Getenv("CHAT_ID"),
-		NewsFolder:       "",
-		Round:            0,
+	var news providers.RoundsStruct
+	news.Parse("exploits.yml")
+	round, _ := database.GetRound()
+	if round < len(news.Rounds) {
+		if err := news_bot.SendNews([]string{
+			news.Rounds[round].HintNews,
+			news.Rounds[round].News,
+		}); err != nil{
+			log.Println(err)
+		}
+		c.Data(http.StatusOK, "plain/text", []byte(fmt.Sprintf("news{round=%d} 1", round)))
 	}
-	if err := tb.LoadMessage("test.md"); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"detail": err,
-		})
-		return
-	}
-	if err := tb.SendMessage(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"detail": err,
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"result": true,
-	})
+	c.Data(http.StatusOK, "plain/text", []byte(fmt.Sprintf("news{round=%d} 0", round)))
 }

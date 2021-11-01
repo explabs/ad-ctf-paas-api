@@ -41,7 +41,7 @@ type ScoreboardServiceJson struct {
 	Name         string  `json:"name"`
 	Value        string  `json:"value"`
 	SLA          float64 `json:"sla"`
-	FP           float64 `json:"fp"`
+	Points       float64 `json:"points"`
 	Gained       float64 `json:"gained"`
 	Lost         float64 `json:"lost"`
 	ServiceScore float64 `json:"score"`
@@ -83,23 +83,27 @@ func ShowScoreboard(c *gin.Context) {
 			serviceNum += 1
 			totalStatus += totalServiceOKStatus / teamHistory.TotalRounds
 			sService.SLA = totalServiceOKStatus / teamHistory.TotalRounds * 100
+
 			flags := database.GetServiceFlagsStats(team.Name, serviceName)
 			sService.Gained = flags.Gained
 			sService.Lost = flags.Lost
-			sService.FP = flags.Gained - flags.Lost
+			sService.Points = flags.Gained - flags.Lost
+
 			for _, service := range services {
 				log.Println(service)
 				if service.Name == serviceName {
 					sService.Cost = service.Cost
+					sService.Points = service.HP + sService.Points * service.Cost
 					break
 				}
 			}
-			if sService.FP >= 0 {
-				sService.ServiceScore = sService.FP * (totalServiceOKStatus / teamHistory.TotalRounds)
-			} else if sService.FP < 0 {
-				sService.ServiceScore = sService.FP * (1 - totalServiceOKStatus/teamHistory.TotalRounds)
+
+			if sService.Points >= 0 {
+				sService.ServiceScore = sService.Points * (totalServiceOKStatus / teamHistory.TotalRounds)
+			} else if sService.Points < 0 {
+				sService.ServiceScore = sService.Points * (1 - totalServiceOKStatus/teamHistory.TotalRounds)
 			}
-			sService.ServiceScore *= sService.Cost
+
 			totalScore += sService.ServiceScore
 
 			sTeam.Services = append(sTeam.Services, sService)
