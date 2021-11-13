@@ -36,7 +36,7 @@ func isAdmin() gin.HandlerFunc {
 func AddAdmin() {
 	teams, _ := database.GetUsers()
 	for _, team := range teams {
-		if team.Name == "admin" {
+		if team.Login == "admin" {
 			return
 		}
 	}
@@ -47,7 +47,7 @@ func AddAdmin() {
 	hash, _ := routers.HashPassword(password)
 	database.CreateTeam(&models.Team{
 		ID:        primitive.NewObjectID(),
-		Name:      "admin",
+		Login:      "admin",
 		Hash:      hash,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -63,9 +63,9 @@ func main() {
 
 	database.InitMongo()
 
-	var sc config.ServicesCost
+	var sc config.ServicesInfo
 	sc.Load()
-	database.UploadServiceCost(sc.Services)
+	database.UploadServices(sc.Services)
 
 	database.InitRedis()
 
@@ -103,17 +103,13 @@ func main() {
 			}
 			userID := loginVals.Username
 			password := loginVals.Password
-			filter := map[string]interface{}{
-				"name": userID,
-			}
-
-			team, dbErr := database.FilterTeams(filter)
+			team, dbErr := database.GetAuthTeam(userID)
 			if dbErr != nil {
 				log.Println(dbErr)
 				return nil, jwt.ErrFailedAuthentication
 			}
 			log.Println(team)
-			if routers.CheckPasswordHash(password, team[0].Hash) {
+			if routers.CheckPasswordHash(password, team.Hash) {
 				return &models.JWTTeam{
 					TeamName: userID,
 				}, nil
@@ -199,8 +195,10 @@ func main() {
 			admin.DELETE("/team/:name", routers.DeleteTeams)
 			// admin.POST("/generate/terraform", routers.GenerateTerraformConfig)
 			admin.POST("/generate/variables", routers.GenerateVariables)
-			admin.POST("/generate/sshkeys", routers.GenerateSshKeysDir)
+			admin.POST("/generate/sshkeys", routers.SshKeyArchiveHandler)
 			admin.POST("/generate/prometheus", routers.GeneratePrometheus)
+			admin.POST("/prom/start", routers.RunPrometheusHandler)
+			admin.POST("/prom/stop", routers.StopPrometheusHandler)
 
 		}
 		services := v1.Group("/services")

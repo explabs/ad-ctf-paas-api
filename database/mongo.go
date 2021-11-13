@@ -52,20 +52,33 @@ func CreateTeam(team *models.Team) error {
 	_, err := collection.InsertOne(ctx, team)
 	return err
 }
-func GetTeams() ([]*models.Team, error) {
+func GetTeams() ([]*models.TeamInfo, error) {
 	// passing bson.D{{}} matches all documents in the collection
-	filter := bson.M{"name": bson.M{"$ne": "admin"}}
+	filter := bson.M{"login": bson.M{"$ne": "admin"}}
 	return FilterTeams(filter)
 }
-func GetUsers() ([]*models.Team, error) {
+func GetTeam(login string) ([]*models.TeamInfo, error) {
+	// passing bson.D{{}} matches all documents in the collection
+	filter := bson.M{"login": login}
+	return FilterTeams(filter)
+}
+func GetUsers() ([]*models.TeamInfo, error) {
 	// passing bson.D{{}} matches all documents in the collection
 	filter := bson.D{{}}
 	return FilterTeams(filter)
 }
+func GetAuthTeam(login string) (team models.Team, err error) {
+	cur := collection.FindOne(ctx, bson.M{"login": login})
+	cur.Decode(&team)
+	if err != nil {
+		return team, err
+	}
+	return team, nil
+}
 
-func FilterTeams(filter interface{}) ([]*models.Team, error) {
+func FilterTeams(filter interface{}) ([]*models.TeamInfo, error) {
 	// A slice of teams for storing the decoded documents
-	var teams []*models.Team
+	var teams []*models.TeamInfo
 
 	cur, err := collection.Find(ctx, filter)
 	if err != nil {
@@ -73,7 +86,7 @@ func FilterTeams(filter interface{}) ([]*models.Team, error) {
 	}
 
 	for cur.Next(ctx) {
-		var t models.Team
+		var t models.TeamInfo
 		err := cur.Decode(&t)
 		if err != nil {
 			return teams, err
@@ -147,7 +160,7 @@ func GetServiceFlagsStats(team, service string) (f ServiceFlagsStats) {
 	return f
 }
 
-func GetServicesCost() (s []*models.Service, err error) {
+func GetServices() (s []*models.Service, err error) {
 	cur, err := services.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
@@ -169,7 +182,7 @@ func GetServicesCost() (s []*models.Service, err error) {
 	return s, nil
 }
 
-func UploadServiceCost(s []*models.Service) {
+func UploadServices(s []*models.Service) {
 	var si []interface{}
 	for _, elem := range s {
 		si = append(si, *elem)

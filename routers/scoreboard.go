@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"sort"
 )
 
 func ShowTeamStatus(c *gin.Context) {
@@ -30,6 +31,15 @@ func ShowTeamStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{teamName: result})
 }
 
+type Scoreboard struct {
+	Services []Services           `json:"services"`
+	Teams    []ScoreboardTeamJson `json:"teams"`
+}
+type Services struct {
+	Name string  `json:"name"`
+	HP   float64 `json:"hp"`
+	Cost float64 `json:"cost"`
+}
 type ScoreboardTeamJson struct {
 	TeamName string                  `json:"name"`
 	SLA      float64                 `json:"sla"`
@@ -45,7 +55,6 @@ type ScoreboardServiceJson struct {
 	Gained       float64 `json:"gained"`
 	Lost         float64 `json:"lost"`
 	ServiceScore float64 `json:"score"`
-	Cost         float64 `json:"cost"`
 }
 
 func ShowScoreboard(c *gin.Context) {
@@ -54,9 +63,9 @@ func ShowScoreboard(c *gin.Context) {
 	if dbErr != nil {
 		log.Println(dbErr)
 	}
-	services, _ := database.GetServicesCost()
+	services, _ := database.GetServices()
 	log.Println(services)
-	var scoreboard []ScoreboardTeamJson
+	var scoreboard Scoreboard
 	for _, team := range teams {
 		var serviceNum = 0.0
 		var totalStatus = 0.0
@@ -92,8 +101,7 @@ func ShowScoreboard(c *gin.Context) {
 			for _, service := range services {
 				log.Println(service)
 				if service.Name == serviceName {
-					sService.Cost = service.Cost
-					sService.Points = service.HP + sService.Points * service.Cost
+					sService.Points = service.HP + sService.Points*service.Cost
 					break
 				}
 			}
@@ -110,8 +118,18 @@ func ShowScoreboard(c *gin.Context) {
 		}
 		sTeam.Score = totalScore / serviceNum
 		sTeam.SLA = totalStatus / serviceNum * 100
-		scoreboard = append(scoreboard, sTeam)
-		log.Println(teamHistory)
+		scoreboard.Teams = append(scoreboard.Teams, sTeam)
 	}
+
+	for _, service := range services {
+		scoreboard.Services = append(scoreboard.Services, Services{
+			Name: service.Name,
+			HP:   service.HP,
+			Cost: service.Cost,
+		})
+	}
+	sort.Slice(scoreboard.Teams, func(i, j int) bool {
+		return scoreboard.Teams[i].Score > scoreboard.Teams[j].Score
+	})
 	c.JSON(http.StatusOK, gin.H{"scoreboard": scoreboard})
 }

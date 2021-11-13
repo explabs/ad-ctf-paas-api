@@ -4,15 +4,11 @@ import (
 	"fmt"
 	"github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 )
-
-func UsersList(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"users": []string{"test"},
-	})
-}
 
 func TeamsList(c *gin.Context) {
 	teams, dbErr := database.GetTeams()
@@ -22,13 +18,6 @@ func TeamsList(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"teams": teams,
-	})
-}
-
-func DeleteUsers(c *gin.Context) {
-	user := c.Param("name")
-	c.JSON(http.StatusOK, gin.H{
-		"message": fmt.Sprintf("user %s deleted", user),
 	})
 }
 
@@ -71,4 +60,45 @@ func CountTeamsHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"teams": result})
+}
+
+func prometheusManagerRequest(action string) (string, error) {
+	url := "http://localhost:9091/"
+	switch action {
+	case "start":
+		url = url + action
+	case "stop":
+		url = url + action
+	default:
+		return "",fmt.Errorf("bad action: %s", action)
+	}
+	req, err := http.NewRequest("GET", url, nil)
+	req.SetBasicAuth("admin", os.Getenv("ADMIN_PASS"))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	responseText, err := ioutil.ReadAll(resp.Body)
+	return string(responseText), err
+}
+
+
+func RunPrometheusHandler(c *gin.Context){
+	response, err := prometheusManagerRequest("start")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"result": response})
+}
+
+func StopPrometheusHandler(c *gin.Context){
+	response, err := prometheusManagerRequest("stop")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"result": response})
 }

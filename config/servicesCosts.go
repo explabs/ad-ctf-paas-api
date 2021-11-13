@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 )
 
-type ServicesCost struct {
+type ServicesInfo struct {
 	Services []*models.Service `yaml:"services"`
 }
 
-func (s *ServicesCost) Load() error {
+func (s *ServicesInfo) Load() error {
 	buf, err := ioutil.ReadFile("checker.yml")
 	if err != nil {
 		return err

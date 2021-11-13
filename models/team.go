@@ -10,9 +10,18 @@ type Team struct {
 	CreatedAt time.Time          `bson:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at"`
 	Name      string             `bson:"name"`
+	Login     string             `bson:"login"`
 	Hash      string             `bson:"hash"`
 	Address   string             `bson:"address"`
 	SshPubKey string             `bson:"shh_pub_key"`
+}
+type TeamInfo struct {
+	CreatedAt time.Time `bson:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at"`
+	Name      string    `bson:"name"`
+	Login     string    `bson:"login"`
+	Address   string    `bson:"address"`
+	SshPubKey string    `bson:"shh_pub_key"`
 }
 
 type Flags struct {

@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-func AddVpnTeam(team *models.Team) error {
+func AddVpnTeam(team *models.TeamInfo) error {
 	vpnAddr := os.Getenv("OVPN_ADMIN")
 	if vpnAddr == ""{
 		vpnAddr = "http://localhost:9000"

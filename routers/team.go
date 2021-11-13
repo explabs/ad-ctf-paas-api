@@ -6,6 +6,7 @@ import (
 	"github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/explabs/ad-ctf-paas-api/models"
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -31,10 +32,12 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func GetTeamInfo(c *gin.Context) {
-	team := Team{
-		Name: "Test",
+	team, err := database.GetTeam("")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
 	}
-	c.JSON(http.StatusOK, team)
+	c.JSON(http.StatusOK, team[0])
 }
 
 func generateIp(number int) string {
@@ -43,8 +46,10 @@ func generateIp(number int) string {
 		log.Println(err.Error())
 	}
 	ip = ip.To4()
-	ip[2] += byte(number)
-	return ip.String()
+	ip[2] = byte(number)
+	ip[3] = 10
+	// TODO: find better solution for generate cidr
+	return ip.String() + "/24"
 }
 
 func CreateTeam(c *gin.Context) {
@@ -58,7 +63,7 @@ func CreateTeam(c *gin.Context) {
 	if dbErr != nil {
 		log.Println(dbErr)
 	}
-	ipAddress := generateIp(len(teams))
+	ipAddress := generateIp(len(teams) + 1)
 	hash, hashErr := HashPassword(team.Password)
 	if hashErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": hashErr.Error()})
@@ -68,6 +73,7 @@ func CreateTeam(c *gin.Context) {
 	dbTeam := &models.Team{
 		ID:        primitive.NewObjectID(),
 		Name:      team.Name,
+		Login:     slug.Make(team.Name),
 		Address:   ipAddress,
 		Hash:      hash,
 		SshPubKey: team.SshPubKey,
@@ -79,14 +85,6 @@ func CreateTeam(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": dbErr.Error()})
 		return
 	}
-
-	//sshErr := CreateSshKeyFile(team.Name, team.SshPubKey)
-	//if sshErr != nil {
-	//	c.JSON(http.StatusBadRequest, gin.H{"error": sshErr.Error()})
-	//	return
-	//}
-	//log.Println("ssh key created for team", team.Name)
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("The team %s created", team.Name),
 	})
