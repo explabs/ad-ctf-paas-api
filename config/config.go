@@ -7,16 +7,18 @@ import (
 )
 
 var Conf *Config
+var allowedModes = map[string]bool{
+	"defence":        true,
+	"attack-defence": true,
+}
 
 type Config struct {
-	TerraformProjectPath string `yaml:"terraform_project_path"`
-	SshKeys              string `yaml:"ssh_keys"`
-	AdminMachine         bool   `yaml:"admin_machine"`
-	Network              string `yaml:"network"`
-	CheckerPassword      string `yaml:"checker_password"`
-	RoundInterval        string `yaml:"round_interval"`
-	Teams                Teams  `yaml:"teams"`
-	Users                Users  `yaml:"users"`
+	Mode            string `json:"mode"`
+	Network         string `yaml:"network"`
+	CheckerPassword string `yaml:"checker_password"`
+	RoundInterval   string `yaml:"round_interval"`
+	Teams           Teams  `yaml:"teams"`
+	Users           Users  `yaml:"users"`
 }
 
 type Teams struct {
@@ -42,11 +44,11 @@ func ReadConf(filename string) error {
 
 	Conf = &Config{}
 	err = yaml.Unmarshal(buf, Conf)
-	if Conf.SshKeys == "" {
-		Conf.SshKeys = "ssh_keys/"
-	}
 	if err != nil {
 		return fmt.Errorf("in file %q: %v", filename, err)
+	}
+	if !allowedModes[Conf.Mode] {
+		return fmt.Errorf("unsuported mode, allowed %v", allowedModes)
 	}
 
 	return nil

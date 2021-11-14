@@ -47,7 +47,7 @@ func AddAdmin() {
 	hash, _ := routers.HashPassword(password)
 	database.CreateTeam(&models.Team{
 		ID:        primitive.NewObjectID(),
-		Login:      "admin",
+		Login:     "admin",
 		Hash:      hash,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -86,6 +86,7 @@ func main() {
 			if v, ok := data.(*models.JWTTeam); ok {
 				return jwt.MapClaims{
 					identityKey: v.TeamName,
+					"mode": config.Conf.Mode,
 				}
 			}
 			return jwt.MapClaims{}
@@ -170,7 +171,9 @@ func main() {
 	v1 := router.Group("/api/v1")
 	{
 		v1.POST("/login", authMiddleware.LoginHandler)
-		v1.POST("/submit", authMiddleware.MiddlewareFunc(), routers.SubmitFlagHandler)
+		if config.Conf.Mode == "attack-defence"{
+			v1.POST("/submit", authMiddleware.MiddlewareFunc(), routers.SubmitFlagHandler)
+		}
 		v1.GET("/scoreboard", authMiddleware.MiddlewareFunc(), routers.ShowScoreboard)
 		v1.GET("/scoreboard/:name", authMiddleware.MiddlewareFunc(), routers.ShowTeamStatus)
 		auth := router.Group("/auth")
@@ -210,9 +213,9 @@ func main() {
 			"checker": config.Conf.CheckerPassword,
 		}))
 		{
-			walker.GET("/checker",routers.CheckerHandler)
-			walker.GET("/news",routers.NewsHandler)
-			walker.GET("/exploit",routers.ExploitHandler)
+			walker.GET("/checker", routers.CheckerHandler)
+			walker.GET("/news", routers.NewsHandler)
+			walker.GET("/exploit", routers.ExploitHandler)
 		}
 	}
 	router.Run(":8080")
