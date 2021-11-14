@@ -147,3 +147,21 @@ func GetRound() (int, error) {
 func IncrRound() {
 	roundsClient.Incr("round")
 }
+func RegistrationStatus() (string, error) {
+	val, err := timeClient.Get("reg_status").Result()
+	if err == redis.Nil{
+		return "open", nil
+	} else if err != nil {
+		return "", err
+	} else {
+		return val, nil
+	}
+	return "", nil
+}
+func ChangeRegistrationStatus(status string) error {
+	err := timeClient.Set("reg_status", status, 0).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
