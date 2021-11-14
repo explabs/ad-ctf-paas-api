@@ -5,7 +5,6 @@ import (
 	"github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
 )
@@ -37,30 +36,31 @@ type TeamsForAnsible struct {
 	DHCPEnd   string `json:"dhcp_end"`
 }
 
-func CountTeamsHandler(c *gin.Context) {
-	var result []TeamsForAnsible
-	teams, _ := database.GetTeams()
-	for _, team := range teams{
-		data := TeamsForAnsible{
-			Name: team.Name,
-			Netmask: "255.255.255.0",
-			Mode: "nat",
-		}
-		// network address
-		ip := net.ParseIP(team.Address)
-		ip = ip.To4()
-		ip[3] = 0
-		data.IP = ip.String()
-		// dhcp start
-		ip[3] = 11
-		data.DHCPStart = ip.String()
-		ip[3] = 253
-		data.DHCPEnd = ip.String()
-		result = append(result, data)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"teams": result})
-}
+// TODO: fix this func if it will be used
+//func CountTeamsHandler(c *gin.Context) {
+//	var result []TeamsForAnsible
+//	teams, _ := database.GetTeams()
+//	for _, team := range teams{
+//		data := TeamsForAnsible{
+//			Name: team.Name,
+//			Netmask: "255.255.255.0",
+//			Mode: "nat",
+//		}
+//		// network address
+//		ip := net.ParseIP(team.Address)
+//		ip = ip.To4()
+//		ip[3] = 0
+//		data.IP = ip.String()
+//		// dhcp start
+//		ip[3] = 11
+//		data.DHCPStart = ip.String()
+//		ip[3] = 253
+//		data.DHCPEnd = ip.String()
+//		result = append(result, data)
+//	}
+//
+//	c.JSON(http.StatusOK, gin.H{"teams": result})
+//}
 
 func prometheusManagerRequest(action string) (string, error) {
 	url := "http://localhost:9091/"

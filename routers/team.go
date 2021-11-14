@@ -34,7 +34,7 @@ func CheckPasswordHash(password, hash string) bool {
 func GetTeamInfo(c *gin.Context) {
 	team, err := database.GetTeam("")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
 		return
 	}
 	c.JSON(http.StatusOK, team[0])
@@ -53,10 +53,19 @@ func generateIp(number int) string {
 }
 
 func CreateTeam(c *gin.Context) {
+	status, err := database.RegistrationStatus()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+		return
+	}
+	if status == "close"{
+		c.JSON(http.StatusBadRequest, gin.H{"detail": "registration closed"})
+		return
+	}
 	var team Team
 	jsonErr := c.BindJSON(&team)
 	if jsonErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": jsonErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": jsonErr.Error()})
 		return
 	}
 	teams, dbErr := database.GetTeams()
@@ -66,7 +75,7 @@ func CreateTeam(c *gin.Context) {
 	ipAddress := generateIp(len(teams) + 1)
 	hash, hashErr := HashPassword(team.Password)
 	if hashErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": hashErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": hashErr.Error()})
 		return
 	}
 
@@ -82,7 +91,7 @@ func CreateTeam(c *gin.Context) {
 	}
 	dbErr = database.CreateTeam(dbTeam)
 	if dbErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": dbErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -94,7 +103,7 @@ func DeleteTeam(c *gin.Context) {
 	teamName := c.Param("name")
 	dbErr := database.DeleteTeam(teamName)
 	if dbErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": dbErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{

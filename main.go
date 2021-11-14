@@ -39,6 +39,7 @@ func addAdmin() {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	// load config data
 	err := config.ReadConf("config.yml")
 	if err != nil {
 		log.Fatal(err)
@@ -62,41 +63,53 @@ func main() {
 
 	// the jwt middleware
 	authMiddleware, err := jwt.New(&middlewares.JwtMiddlewareStruct)
-
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
 	}
 
 	router.NoRoute(authMiddleware.MiddlewareFunc(), func(c *gin.Context) {
-		claims := jwt.ExtractClaims(c)
-		log.Printf("NoRoute claims: %#v\n", claims)
 		c.JSON(http.StatusNotFound, gin.H{"detail": "Not found"})
 	})
-
-	v1 := router.Group("/api/v1")
+	publicV1 := router.Group("/api/v1")
 	{
-		v1.POST("/login", authMiddleware.LoginHandler)
-		v1.GET("/auth/refresh_token", authMiddleware.RefreshHandler)
+		publicV1.POST("/team", routers.CreateTeam)
 
-		v1.Use(authMiddleware.MiddlewareFunc())
-		v1.GET("/scoreboard", routers.ShowScoreboard)
-		v1.GET("/scoreboard/:name", routers.ShowTeamStatus)
-		if config.Conf.Mode == "attack-defence"{
-			v1.POST("/submit", routers.SubmitFlagHandler)
+		auth := publicV1.Group("/auth")
+		auth.POST("/login", authMiddleware.LoginHandler)
+		auth.GET("/refresh_token", authMiddleware.RefreshHandler)
+
+		services := publicV1.Group("/services")
+		//services.GET("/teams/info", routers.CountTeamsHandler)
+		services.GET("/system/info", routers.InfoHandler)
+	}
+	basicAuthV1 := router.Group("/api/v1")
+	{
+		// routes for prometheus with basic auth
+		walker := basicAuthV1.Group("/game")
+		walker.Use(gin.BasicAuth(gin.Accounts{"checker": config.Conf.CheckerPassword}))
+		walker.GET("/checker", routers.CheckerHandler)
+		walker.GET("/news", routers.NewsHandler)
+		walker.GET("/exploit", routers.ExploitHandler)
+
+	}
+	jwtV1 := router.Group("/api/v1")
+	jwtV1.Use(authMiddleware.MiddlewareFunc())
+	{
+		jwtV1.GET("/scoreboard", routers.ShowScoreboard)
+		jwtV1.GET("/scoreboard/:name", routers.ShowTeamStatus)
+		if config.Conf.Mode == "attack-defence" {
+			jwtV1.POST("/submit", routers.SubmitFlagHandler)
 		}
 
 		// teams CRUD
-		team := v1.Group("/team")
-		team.POST("/", routers.CreateTeam)
-		team.Use(authMiddleware.MiddlewareFunc())
+		team := jwtV1.Group("/team")
 		{
 			team.GET("/", routers.GetTeamInfo)
 			team.DELETE("/", routers.DeleteTeam)
 		}
 
 		// admins functions
-		admin := v1.Group("/admin")
-		admin.Use(authMiddleware.MiddlewareFunc())
+		admin := jwtV1.Group("/admin")
 		admin.Use(middlewares.IsAdmin())
 		{
 			admin.GET("/teams", routers.TeamsList)
@@ -109,24 +122,6 @@ func main() {
 			admin.POST("/prom/stop", routers.StopPrometheusHandler)
 			admin.GET("/reg/open", routers.OpenRegistrationHandler)
 			admin.GET("/reg/close", routers.CloseRegistrationHandler)
-		}
-
-		// public services without auth
-		services := v1.Group("/services")
-		{
-			services.GET("/teams/info", routers.CountTeamsHandler)
-			services.GET("/system/info", routers.InfoHandler)
-		}
-
-		// routes for prometheus with basic auth
-		walker := v1.Group("/game")
-		walker.Use(gin.BasicAuth(gin.Accounts{
-			"checker": config.Conf.CheckerPassword,
-		}))
-		{
-			walker.GET("/checker", routers.CheckerHandler)
-			walker.GET("/news", routers.NewsHandler)
-			walker.GET("/exploit", routers.ExploitHandler)
 		}
 	}
 	router.Run(":8080")

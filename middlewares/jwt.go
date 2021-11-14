@@ -63,7 +63,7 @@ var JwtMiddlewareStruct = jwt.GinJWTMiddleware{
 			log.Println(dbErr)
 			return nil, jwt.ErrFailedAuthentication
 		}
-		log.Println(team)
+		log.Println(userID)
 		if routers.CheckPasswordHash(password, team.Hash) {
 			return &models.JWTTeam{
 				TeamName: userID,
@@ -76,7 +76,6 @@ var JwtMiddlewareStruct = jwt.GinJWTMiddleware{
 		if _, ok := data.(*models.JWTTeam); ok {
 			return true
 		}
-
 		return false
 	},
 	Unauthorized: func(c *gin.Context, code int, message string) {
@@ -85,21 +84,7 @@ var JwtMiddlewareStruct = jwt.GinJWTMiddleware{
 			"message": message,
 		})
 	},
-	// TokenLookup is a string in the form of "<source>:<name>" that is used
-	// to extract token from the request.
-	// Optional. Default value "header:Authorization".
-	// Possible values:
-	// - "header:<name>"
-	// - "query:<name>"
-	// - "cookie:<name>"
-	// - "param:<name>"
 	TokenLookup: "header: Authorization, query: token, cookie: jwt",
-	// TokenLookup: "query:token",
-	// TokenLookup: "cookie:token",
-
-	// TokenHeadName is a string in the header. Default value is "Bearer"
 	TokenHeadName: "Bearer",
-
-	// TimeFunc provides the current time. You can override it to use another time value. This is useful for testing or if your server uses a different time zone than your tokens.
 	TimeFunc: time.Now,
 }
