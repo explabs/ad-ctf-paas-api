@@ -32,7 +32,7 @@ func SshKeyArchiveHandler(c *gin.Context) {
 		return
 	}
 
-	tmpdirName, _ := temporary.CreateTempDir()
+	tmpdirName, _ := temporary.CreateTempDir("keys")
 	defer os.RemoveAll(tmpdirName)
 	for _, team := range teams {
 		fileName := fmt.Sprintf("%s.pub", team.Name)
