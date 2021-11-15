@@ -67,9 +67,6 @@ func main() {
 		log.Fatal("JWT Error:" + err.Error())
 	}
 
-	router.NoRoute(authMiddleware.MiddlewareFunc(), func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{"detail": "Not found"})
-	})
 	publicV1 := router.Group("/api/v1")
 	{
 		publicV1.POST("/team", routers.CreateTeam)
@@ -124,5 +121,8 @@ func main() {
 			admin.GET("/reg/close", routers.CloseRegistrationHandler)
 		}
 	}
+	router.NoRoute(authMiddleware.MiddlewareFunc(), func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{"detail": "Not found"})
+	})
 	router.Run(":8080")
 }

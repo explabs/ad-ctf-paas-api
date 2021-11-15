@@ -31,12 +31,12 @@ func PutFlags() (map[string]int, error) {
 		for _, service := range c.Service {
 			if !reflect.ValueOf(service.Put).IsZero() {
 				var f database.FlagStruct
-				f.Team = team.Name
+				f.Team = team.Login
 				f.Service = service.Name
 				for _, script := range service.Put {
 
 					metricLabels := map[string]string{
-						"team":    team.Name,
+						"team":    team.Login,
 						"service": service.Name,
 						"script":  script.Name,
 						"action":  "put",
@@ -76,7 +76,7 @@ func CheckFlags() (map[string]int, error) {
 		for _, service := range c.Service {
 			if !reflect.ValueOf(service.Check).IsZero() {
 				var f database.FlagStruct
-				f.Team = team.Name
+				f.Team = team.Login
 				f.Service = service.Name
 				keys, _ := f.GetKeys()
 				for i, script := range service.Check {
@@ -86,7 +86,7 @@ func CheckFlags() (map[string]int, error) {
 					f.ID = keys[i]
 
 					metricLabels := map[string]string{
-						"team":    team.Name,
+						"team":    team.Login,
 						"service": service.Name,
 						"script":  script.Name,
 						"action":  "check",
@@ -127,7 +127,7 @@ func Exploitation() (map[string]int, error) {
 			if !reflect.ValueOf(round.Exploits).IsZero() {
 				for _, exploit := range round.Exploits {
 					metricLabels := map[string]string{
-						"team":    team.Name,
+						"team":    team.Login,
 						"service": exploit.ServiceName,
 						"script":  exploit.ScriptName,
 						"action":  "exploit",
@@ -139,7 +139,7 @@ func Exploitation() (map[string]int, error) {
 					response, _ := exploit.RunScript("localhost", "")
 					if response == "1"{
 						promResult[metricNameStr] = 1
-						database.AddDefenceFlag(team.Name, exploit.ServiceName)
+						database.AddDefenceFlag(team.Login, exploit.ServiceName)
 					}
 				}
 			}

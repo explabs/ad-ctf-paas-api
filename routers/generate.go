@@ -77,7 +77,7 @@ func GenerateVariables(c *gin.Context) {
 	ipsBody := ips.Body()
 	ipsBody.SetAttributeValue("default", cty.ListVal(ipsList))
 
-	cidrs := rootBody.AppendNewBlock("variable", []string{"ips"})
+	cidrs := rootBody.AppendNewBlock("variable", []string{"cidr"})
 	cidrsBody := cidrs.Body()
 	cidrsBody.SetAttributeValue("default", cty.ListVal(cidrList))
 	hclFile.WriteTo(tfFile)

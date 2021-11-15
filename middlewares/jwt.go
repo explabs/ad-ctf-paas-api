@@ -63,7 +63,6 @@ var JwtMiddlewareStruct = jwt.GinJWTMiddleware{
 			log.Println(dbErr)
 			return nil, jwt.ErrFailedAuthentication
 		}
-		log.Println(userID)
 		if routers.CheckPasswordHash(password, team.Hash) {
 			return &models.JWTTeam{
 				TeamName: userID,
