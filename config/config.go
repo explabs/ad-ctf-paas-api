@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
 )
 
 var Conf *Config
@@ -17,6 +18,7 @@ type Config struct {
 	Network         string `yaml:"network"`
 	CheckerPassword string `yaml:"checker_password"`
 	RoundInterval   string `yaml:"round_interval"`
+	ExploitInterval string `yaml:"exploit_interval"`
 	Teams           Teams  `yaml:"teams"`
 	Users           Users  `yaml:"users"`
 }

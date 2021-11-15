@@ -1,4 +1,5 @@
-terraform_project_path: terraform/
-ssh_keys: keys/
+mode: defence
 network: 10.0.1.0/24
 checker_password: test
+round_interval: 30s
+exploit_interval: 1m

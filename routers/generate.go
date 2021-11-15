@@ -1,16 +1,21 @@
 package routers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"os"
+
+	"github.com/explabs/ad-ctf-paas-api/config"
 	"github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/explabs/ad-ctf-paas-api/pkg/archive"
 	"github.com/explabs/ad-ctf-paas-api/pkg/temporary"
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
-	"net"
-	"net/http"
-	"os"
 )
 
 type Teams struct {
@@ -84,6 +89,57 @@ func GenerateVariables(c *gin.Context) {
 	c.File(fileName)
 }
 
-func GeneratePrometheus(c *gin.Context) {
+// curl -u admin:admin -H "Content-Type: application/json" --data '{ "password": "test", "target": "192.168.100.105:8080", "interval": "30s", "timeout": "10s", "jobs": [{"name": "checker", "path": "api/v1/game/checker"}]}' http://localhost:9091/generate
+// TOKEN=$(curl -s -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' --data '{"username":"admin","password":"admin"}' http://localhost/api/v1/auth/login | jq -r '.token')
+// curl -H 'Accept: application/json' -H "Authorization: Bearer ${TOKEN}" -X POST http://localhost/api/v1/admin/generate/prometheus
+type Payload struct {
+	Password string `json:"password"`
+	Target   string `json:"target"`
+	Interval string `json:"interval"`
+	Timeout  string `json:"timeout"`
+	Jobs     []Jobs `json:"jobs"`
+}
+type Jobs struct {
+	Name     string `json:"name"`
+	Path     string `json:"path"`
+	Interval string `json:"interval"`
+}
 
+func GeneratePrometheus(c *gin.Context) {
+	interval := config.Conf.RoundInterval
+	data := Payload{
+		Password: config.Conf.CheckerPassword,
+		Target:   "ad-api",
+		Interval: interval,
+		Timeout:  "10s",
+	}
+
+	baseApiPath := "api/v1/game/"
+	defenceJobNames := []string{"checker", "exploits", "news"}
+	for _, name := range defenceJobNames {
+		data.Jobs = append(data.Jobs, Jobs{Name: name, Path: baseApiPath + name, Interval: interval})
+		if config.Conf.Mode != "defence" {
+			break
+		}
+		interval = config.Conf.ExploitInterval
+	}
+
+	payloadBytes, err := json.Marshal(data)
+	if err != nil {
+		log.Println(err)
+	}
+	body := bytes.NewReader(payloadBytes)
+
+	req, err := http.NewRequest("POST", "http://prometheus-manager:9091/generate", body)
+	if err != nil {
+		log.Println(err)
+	}
+	req.SetBasicAuth("admin", os.Getenv("ADMIN_PASS"))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	defer resp.Body.Close()
 }
