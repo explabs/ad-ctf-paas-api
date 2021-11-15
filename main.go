@@ -58,8 +58,6 @@ func main() {
 
 	// create router object
 	router := gin.Default()
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
 
 	// the jwt middleware
 	authMiddleware, err := jwt.New(&middlewares.JwtMiddlewareStruct)
@@ -112,8 +110,8 @@ func main() {
 			admin.GET("/teams", routers.TeamsList)
 			admin.POST("/vpn", routers.CreateVpnTeams)
 			admin.DELETE("/team/:name", routers.DeleteTeams)
-			admin.POST("/generate/variables", routers.GenerateVariables)
-			admin.POST("/generate/sshkeys", routers.SshKeyArchiveHandler)
+			admin.GET("/generate/variables", routers.GenerateVariables)
+			admin.GET("/generate/sshkeys", routers.SshKeyArchiveHandler)
 			admin.POST("/generate/prometheus", routers.GeneratePrometheus)
 			admin.POST("/prom/start", routers.RunPrometheusHandler)
 			admin.POST("/prom/stop", routers.StopPrometheusHandler)
