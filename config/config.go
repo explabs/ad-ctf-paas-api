@@ -14,29 +14,19 @@ var allowedModes = map[string]bool{
 }
 
 type Config struct {
-	Mode            string `json:"mode"`
-	Network         string `yaml:"network"`
-	CheckerPassword string `yaml:"checker_password"`
-	RoundInterval   string `yaml:"round_interval"`
-	ExploitInterval string `yaml:"exploit_interval"`
-	Teams           Teams  `yaml:"teams"`
-	Users           Users  `yaml:"users"`
+	Mode            string   `json:"mode"`
+	Network         string   `yaml:"network"`
+	CheckerPassword string   `yaml:"checker_password"`
+	RoundInterval   string   `yaml:"round_interval"`
+	ExploitInterval string   `yaml:"exploit_interval"`
+	Telegram        Telegram `yaml:"telegram"`
 }
 
-type Teams struct {
-	Number    int       `yaml:"number"`
-	Resources Resources `yaml:"resources"`
+type Telegram struct {
+	BotToken string `yaml:"bot_token"`
+	ChatID   string `yaml:"chat_id"`
 }
 
-type Users struct {
-	Number    int       `yaml:"number"`
-	Resources Resources `yaml:"resources"`
-}
-
-type Resources struct {
-	Memory int `yaml:"memory"`
-	VCPU   int `yaml:"vcpu"`
-}
 
 func ReadConf(filename string) error {
 	buf, err := ioutil.ReadFile(filename)

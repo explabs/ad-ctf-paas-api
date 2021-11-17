@@ -1,13 +1,19 @@
 package news_bot
 
 import (
-	"os"
+	"fmt"
+	"github.com/explabs/ad-ctf-paas-api/config"
 )
 
 func SendNews(filenames []string) error {
+	token := config.Conf.Telegram.BotToken
+	chatId := config.Conf.Telegram.ChatID
+	if token == "" || chatId == "" {
+		return fmt.Errorf("telecgram credentials is empty")
+	}
 	bot := TelegramBot{
-		TelegramBotToken: os.Getenv("TELEGRAM_BOT_TOKEN"),
-		ChatID:           os.Getenv("CHAT_ID"),
+		TelegramBotToken: token,
+		ChatID:           chatId,
 		NewsFolder:       "",
 		Round:            0,
 	}
