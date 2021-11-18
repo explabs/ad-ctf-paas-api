@@ -28,7 +28,7 @@ func SshKeyArchiveHandler(c *gin.Context) {
 	defer os.RemoveAll(archiveName)
 	teams, dbErr := database.GetTeams()
 	if dbErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": dbErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
 		return
 	}
 
@@ -48,7 +48,7 @@ func GenerateVariables(c *gin.Context) {
 	// osImageFilename := "focal-server-cloudimg-amd64.img"
 	teams, dbErr := database.GetTeams()
 	if dbErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": dbErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
 		return
 	}
 	hclFile := hclwrite.NewEmptyFile()

@@ -12,7 +12,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -38,7 +37,7 @@ func GetTeamInfo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
 		return
 	}
-	c.JSON(http.StatusOK, team[0])
+	c.JSON(http.StatusOK, gin.H{"team": team[0]})
 }
 
 func generateIp(number int) string {
@@ -83,7 +82,7 @@ func CreateTeam(c *gin.Context) {
 	dbTeam := &models.Team{
 		ID:        primitive.NewObjectID(),
 		Name:      team.Name,
-		Login:     strings.Replace(slug.Make(team.Name), "-", "_", -1),
+		Login:     slug.Make(team.Name),
 		Address:   ipAddress,
 		Hash:      hash,
 		SshPubKey: team.SshPubKey,

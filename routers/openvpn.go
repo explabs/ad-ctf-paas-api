@@ -10,15 +10,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 )
 
 func AddVpnTeam(team *models.Team, rawPassword string) error {
-	vpnAddr := os.Getenv("OVPN_ADMIN")
-	if vpnAddr == "" {
-		vpnAddr = "http://localhost:9000"
-	}
-	urlAddr := vpnAddr + "/api/user/create"
+	urlAddr := "http://ovpn-admin:9000/api/user/create"
 	_, httpErr := http.PostForm(urlAddr, url.Values{
 		"username": {team.Login},
 		"password": {rawPassword},
@@ -31,8 +26,8 @@ func AddVpnTeam(team *models.Team, rawPassword string) error {
 }
 
 type VpnRoute struct {
-	User          string       `json:"User"`
-	ClientAddress string       `json:"ClientAddress"`
+	User          string         `json:"User"`
+	ClientAddress string         `json:"ClientAddress"`
 	CustomRoutes  []CustomRoutes `json:"CustomRoutes"`
 }
 type CustomRoutes struct {
@@ -41,11 +36,7 @@ type CustomRoutes struct {
 }
 
 func (vpnRoute *VpnRoute) WriteTeamsRoutes() error {
-	vpnAddr := os.Getenv("OVPN_ADMIN")
-	if vpnAddr == "" {
-		vpnAddr = "http://localhost:9000"
-	}
-	urlAddr := vpnAddr + "/api/user/ccd/apply"
+	urlAddr := "http://ovpn-admin:9000/api/user/ccd/apply"
 
 	jsonValue, _ := json.Marshal(vpnRoute)
 	_, httpErr := http.Post(urlAddr, "application/json", bytes.NewBuffer(jsonValue))
@@ -59,7 +50,7 @@ func (vpnRoute *VpnRoute) WriteTeamsRoutes() error {
 func CreateVpnTeams(c *gin.Context) {
 	teams, dbErr := database.GetTeams()
 	if dbErr != nil {
-		c.JSON(http.StatusBadRequest, dbErr)
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr})
 		return
 	}
 
@@ -67,13 +58,18 @@ func CreateVpnTeams(c *gin.Context) {
 		_, ipNet, _ := net.ParseCIDR(team.Address)
 		route := CustomRoutes{
 			Address: ipNet.IP.String(),
-			Mask: net.IP(ipNet.Mask).String(),
+			Mask:    net.IP(ipNet.Mask).String(),
 		}
 		vpnRoute := VpnRoute{
 			User:          team.Login,
 			ClientAddress: "dynamic",
-			CustomRoutes: []CustomRoutes{route},
+			CustomRoutes:  []CustomRoutes{route},
 		}
-		vpnRoute.WriteTeamsRoutes()
+		if err := vpnRoute.WriteTeamsRoutes(); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+			return
+		}
 	}
+	c.JSON(http.StatusOK, gin.H{"message": "Vpn routes added for users"})
+
 }

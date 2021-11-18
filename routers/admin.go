@@ -87,19 +87,25 @@ func prometheusManagerRequest(action string) (string, error) {
 func RunPrometheusHandler(c *gin.Context){
 	response, err := prometheusManagerRequest("start")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
 		return
 	}
-	database.ChangeCheckerStatus(true)
+	if err = database.ChangeCheckerStatus(true); err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"result": response})
 }
 
 func StopPrometheusHandler(c *gin.Context){
 	response, err := prometheusManagerRequest("stop")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
 		return
 	}
-	database.ChangeCheckerStatus(false)
+	if err = database.ChangeCheckerStatus(false); err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"result": response})
 }
