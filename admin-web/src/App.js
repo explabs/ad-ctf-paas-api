@@ -71,11 +71,11 @@ class App extends Component {
                             <Nav className="me-auto container-fluid">
                                 <Nav.Link href="/home">Commands</Nav.Link>
                                 <NavDropdown title="Generate" id="basic-nav-dropdown">
-                                    <NavDropdown.Item href="generate-prom">Terraform</NavDropdown.Item>
+                                    <NavDropdown.Item href="#action/3.1">Terraform</NavDropdown.Item>
                                     <NavDropdown.Item href="#action/3.2">VPN</NavDropdown.Item>
                                     <NavDropdown.Item href="generate-prom">Prometheus</NavDropdown.Item>
                                     <NavDropdown.Divider/>
-                                    <NavDropdown.Item href="#action/3.4">All</NavDropdown.Item>
+                                    <NavDropdown.Item href="#action/3.5">All</NavDropdown.Item>
                                 </NavDropdown>
                                 <Nav.Link className="ms-auto" href="/login" onClick={this.logOut}>LogOut</Nav.Link>
                             </Nav>
