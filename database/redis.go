@@ -165,3 +165,23 @@ func ChangeRegistrationStatus(status string) error {
 	}
 	return nil
 }
+
+func CheckerStatus() (bool, error) {
+	val, err := timeClient.Get("checker_status").Result()
+	if err == redis.Nil{
+		return false, nil
+	} else if err != nil {
+		return false, err
+	} else {
+		value, _ := strconv.ParseBool(val)
+		return value, nil
+	}
+	return false, nil
+}
+func ChangeCheckerStatus(status bool) error {
+	err := timeClient.Set("checker_status", status, 0).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}

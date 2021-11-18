@@ -90,6 +90,7 @@ func RunPrometheusHandler(c *gin.Context){
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
+	database.ChangeCheckerStatus(true)
 	c.JSON(http.StatusOK, gin.H{"result": response})
 }
 
@@ -99,5 +100,6 @@ func StopPrometheusHandler(c *gin.Context){
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
+	database.ChangeCheckerStatus(false)
 	c.JSON(http.StatusOK, gin.H{"result": response})
 }

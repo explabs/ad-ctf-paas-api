@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -58,7 +59,7 @@ func CreateTeam(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
 		return
 	}
-	if status == "close"{
+	if status == "close" {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": "registration closed"})
 		return
 	}
@@ -82,7 +83,7 @@ func CreateTeam(c *gin.Context) {
 	dbTeam := &models.Team{
 		ID:        primitive.NewObjectID(),
 		Name:      team.Name,
-		Login:     slug.Make(team.Name),
+		Login:     strings.Replace(slug.Make(team.Name), "-", "_", -1),
 		Address:   ipAddress,
 		Hash:      hash,
 		SshPubKey: team.SshPubKey,
@@ -92,6 +93,11 @@ func CreateTeam(c *gin.Context) {
 	dbErr = database.CreateTeam(dbTeam)
 	if dbErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
+		return
+	}
+
+	if err := AddVpnTeam(dbTeam, team.Password); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": hashErr.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{

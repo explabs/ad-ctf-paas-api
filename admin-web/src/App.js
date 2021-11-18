@@ -69,7 +69,7 @@ class App extends Component {
                     <Navbar.Collapse id="basic-navbar-nav">
                         {currentUser ? (
                             <Nav className="me-auto container-fluid">
-                                <Nav.Link href="/home">Commands</Nav.Link>
+                                <Nav.Link href="/home">Teams</Nav.Link>
                                 <NavDropdown title="Generate" id="basic-nav-dropdown">
                                     <NavDropdown.Item href="generate-prom">Terraform</NavDropdown.Item>
                                     <NavDropdown.Item href="#action/3.2">VPN</NavDropdown.Item>
