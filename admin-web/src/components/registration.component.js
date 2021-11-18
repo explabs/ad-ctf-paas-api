@@ -113,8 +113,7 @@ export class Registration extends React.Component {
                 <>
                     <Card
                         bg="light"
-                        style={{ width: '25%' }}
-                        className="mb-2"
+                        // className="mb-2"
                         border="primary"
                     >
                         <Card.Title>PlatformInfo</Card.Title>
