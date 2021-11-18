@@ -7,6 +7,7 @@ import (
 	"github.com/explabs/ad-ctf-paas-api/middlewares"
 	"github.com/explabs/ad-ctf-paas-api/models"
 	"github.com/explabs/ad-ctf-paas-api/routers"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -58,7 +59,18 @@ func main() {
 
 	// create router object
 	router := gin.Default()
-
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"Origin","Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "https://github.com"
+		},
+		MaxAge: 12 * time.Hour,
+	}))
+	router.Use()
 	// the jwt middleware
 	authMiddleware, err := jwt.New(&middlewares.JwtMiddlewareStruct)
 	if err != nil {
