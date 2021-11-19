@@ -110,21 +110,23 @@ export class Registration extends React.Component {
             return <div>Загрузка...</div>;
         } else {
             return (
-                <>
-                    <Card
-                        bg="light"
-                        // className="mb-2"
-                        border="primary"
-                    >
-                        <Card.Title>PlatformInfo</Card.Title>
-                        <Card.Body>
-                            <Card.Text>
-                                {Object.entries(items).map(([key, value]) => {
-                                    return <li key={key}><b>{key}:</b> {value}</li>
-                                })}
-                            </Card.Text>
-                        </Card.Body>
-                    </Card>
+                <  >
+                    <div>
+                        <Card
+                            bg="light"
+                            // className="mb-2"
+                            style={{"width": "100%", /*margin: '15px'*/}}
+                            border="primary"
+                        >
+                            <Card.Title>PlatformInfo</Card.Title>
+                            <Card.Body>
+                                <Card.Text>
+                                    {Object.entries(items).map(([key, value]) => {
+                                        return <li key={key}><b>{key}:</b> {value}</li>
+                                    })}
+                                </Card.Text>
+                            </Card.Body>
+                        </Card></div>
                     <Form>
                         <Form.Check
                             type="switch"
