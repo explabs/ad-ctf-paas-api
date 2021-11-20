@@ -62,7 +62,7 @@ func main() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"*"},
-		AllowHeaders:     []string{"Content-Type","Authorization"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(origin string) bool {
@@ -113,6 +113,7 @@ func main() {
 		{
 			team.GET("/", routers.GetTeamInfo)
 			team.DELETE("/", routers.DeleteTeam)
+			team.GET("/vpn", routers.GetVpnConfigHandler)
 		}
 
 		// admins functions
@@ -120,7 +121,7 @@ func main() {
 		admin.Use(middlewares.IsAdmin())
 		{
 			admin.GET("/teams", routers.TeamsList)
-			admin.POST("/vpn", routers.CreateVpnTeams)
+			admin.POST("/vpn", routers.AddVpnRoutes)
 			admin.DELETE("/team/:name", routers.DeleteTeams)
 			admin.GET("/generate/variables", routers.GenerateVariables)
 			admin.GET("/generate/sshkeys", routers.SshKeyArchiveHandler)

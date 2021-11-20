@@ -6,14 +6,17 @@ import (
 	"github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/explabs/ad-ctf-paas-api/models"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
 )
 
+var vpnUrl = "http://openvpn:9000/"
+
 func AddVpnTeam(team *models.Team, rawPassword string) error {
-	urlAddr := "http://ovpn-admin:9000/api/user/create"
+	urlAddr := vpnUrl + "api/user/create"
 	_, httpErr := http.PostForm(urlAddr, url.Values{
 		"username": {team.Login},
 		"password": {rawPassword},
@@ -35,8 +38,27 @@ type CustomRoutes struct {
 	Mask    string `json:"Mask"`
 }
 
+func DownloadVpnConfig(username string) (string, error) {
+	urlAddr := vpnUrl + "api/user/config/show"
+	response, httpErr := http.PostForm(urlAddr, url.Values{
+		"username": {username},
+	})
+	if httpErr != nil {
+		log.Println(httpErr)
+		return "", httpErr
+	}
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	vpnConfig := string(responseData)
+
+	return vpnConfig, nil
+}
+
 func (vpnRoute *VpnRoute) WriteTeamsRoutes() error {
-	urlAddr := "http://ovpn-admin:9000/api/user/ccd/apply"
+	urlAddr := vpnUrl + "api/user/ccd/apply"
 
 	jsonValue, _ := json.Marshal(vpnRoute)
 	_, httpErr := http.Post(urlAddr, "application/json", bytes.NewBuffer(jsonValue))
@@ -47,7 +69,20 @@ func (vpnRoute *VpnRoute) WriteTeamsRoutes() error {
 	return nil
 }
 
-func CreateVpnTeams(c *gin.Context) {
+func GetVpnConfigHandler(c *gin.Context) {
+	user, _ := c.Get("id")
+	username := user.(*models.JWTTeam).TeamName
+	log.Println(user, username)
+	vpnConfig, err := DownloadVpnConfig(username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+		return
+	}
+	c.Data(200, "plain/text; charset=utf-8", []byte(vpnConfig))
+
+}
+
+func AddVpnRoutes(c *gin.Context) {
 	teams, dbErr := database.GetTeams()
 	if dbErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr})
