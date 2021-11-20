@@ -1,7 +1,7 @@
 import axios from "axios";
 import authHeader from "./auth-header";
 
-const API_URL = "http://192.168.100.105:8080/api/v1/";
+const API_URL = "http://192.168.100.105/api/v1/";
 
 class UserService {
     getTeamsList() {
@@ -25,6 +25,9 @@ class UserService {
 
     startCompetition() {
         return axios.post(API_URL + "admin/prom/start", {},{headers: authHeader()});
+    }
+    updateVPN() {
+        return axios.post(API_URL + "admin/vpn", {}, {headers: authHeader()});
     }
 }
 
