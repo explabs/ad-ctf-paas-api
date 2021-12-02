@@ -7,7 +7,7 @@ import (
 
 func CreateTempDir(dirName string) (string, error) {
 	dirName = "/tmp/" + dirName
-	err := os.Mkdir(dirName, 0644)
+	err := os.Mkdir(dirName, 0744)
 	if err != nil {
 		return "", err
 	}
@@ -16,7 +16,7 @@ func CreateTempDir(dirName string) (string, error) {
 
 func WriteFileDataToDir(dirName, filename, data string) (string, error) {
 	filepath := path.Join(dirName, filename)
-	err := os.WriteFile(filepath, []byte(data), 0644)
+	err := os.WriteFile(filepath, []byte(data), 0744)
 	if err != nil {
 		return "", err
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 func TestCreateTempDir(t *testing.T) {
-	dirName, err := CreateTempDir()
+	dirName, err := CreateTempDir("test/")
 	if err != nil {
 		t.Error(err)
 	}
@@ -26,16 +26,18 @@ var testFileData = map[string]string{
 }
 
 func TestWriteFileDataToDir(t *testing.T) {
-	dirName, err := CreateTempDir()
+	dirName, err := CreateTempDir("test")
 	if err != nil {
 		t.Error(err)
 	}
 	defer os.RemoveAll(dirName)
 	for filename, data := range testFileData {
+		t.Log(dirName)
 		filepath, err := WriteFileDataToDir(dirName, filename, data)
 		if err != nil {
 			t.Error(err)
 		}
+		t.Log(filepath)
 		readData, err := os.ReadFile(filepath)
 		if err != nil {
 			t.Error(err)
