@@ -7,7 +7,7 @@ configs.
 
 ### Docker
 
-coming soon...
+`docker pull explabs/ad-ctf-paas-api`
 
 ### Golang
 
