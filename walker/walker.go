@@ -45,8 +45,8 @@ func PutFlags() (map[string]int, error) {
 					promResult[metricNameStr] = 0
 
 					f.Flag = providers.GenerateFlag(20)
-					// response, _ := script.RunScript(team.Address, flag)
-					f.ID, err = script.RunScript("localhost", f.Flag)
+					f.ID, err = script.RunScript(team.Address, f.Flag)
+					// f.ID, err = script.RunScript("localhost", f.Flag)
 					f.Put()
 					f.PutFlag()
 					if err != nil || f.ID == "-1" {
@@ -94,8 +94,8 @@ func CheckFlags() (map[string]int, error) {
 					metricNameStr := fmt.Sprintf("checker{%s}", formatLabels(metricLabels))
 					promResult[metricNameStr] = 0
 
-					// response, _ := script.RunScript(team.Address, flag)
-					response, _ := script.RunScript("localhost", f.ID)
+					response, _ := script.RunScript(team.Address, f.ID)
+					// response, _ := script.RunScript("localhost", f.ID)
 					flag, _ := f.GetFlag()
 					if response == flag {
 						promResult[metricNameStr] = 1
@@ -137,7 +137,7 @@ func Exploitation() (map[string]int, error) {
 
 					// response, _ := script.RunScript(team.Address, "")
 					response, _ := exploit.RunScript("localhost", "")
-					if response == "1"{
+					if response == "1" {
 						promResult[metricNameStr] = 1
 						database.AddDefenceFlag(team.Login, exploit.ServiceName)
 					}
