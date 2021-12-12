@@ -16,7 +16,7 @@ func CreateTempDir(dirName string) (string, error) {
 
 func WriteFileDataToDir(dirName, filename, data string) (string, error) {
 	filepath := path.Join(dirName, filename)
-	err := os.WriteFile(filepath, []byte(data), 0744)
+	err := os.WriteFile(filepath, []byte(data), 0644)
 	if err != nil {
 		return "", err
 	}
