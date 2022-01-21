@@ -66,7 +66,7 @@ func main() {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(origin string) bool {
-			return origin == "https://github.com"
+			return true
 		},
 		MaxAge: 12 * time.Hour,
 	}))
