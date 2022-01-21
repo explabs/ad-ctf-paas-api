@@ -112,7 +112,7 @@ func CreateTeam(c *gin.Context) {
 		slug.Make(team.Name),
 		60*60*24,
 		"/",
-		c.Request.Header.Get("Origin"),
+		"localhost",
 		false,
 		false)
 	c.JSON(http.StatusOK, gin.H{
