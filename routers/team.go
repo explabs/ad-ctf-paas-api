@@ -72,6 +72,15 @@ func CreateTeam(c *gin.Context) {
 	if dbErr != nil {
 		log.Println(dbErr)
 	}
+
+	// check if user already exists
+	for _, dbTeam := range teams {
+		if dbTeam.Login == slug.Make(team.Name) {
+			c.JSON(http.StatusBadRequest, gin.H{"detail": "team already exists"})
+			return
+		}
+	}
+
 	ipAddress := generateIp(len(teams) + 1)
 	hash, hashErr := HashPassword(team.Password)
 	if hashErr != nil {
