@@ -108,6 +108,13 @@ func CreateTeam(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": hashErr.Error()})
 		return
 	}
+	c.SetCookie("login",
+		slug.Make(team.Name),
+		60*60*24,
+		"/",
+		c.Request.Header.Get("Origin"),
+		false,
+		false)
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("The team %s created", team.Name),
 	})
