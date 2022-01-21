@@ -39,8 +39,10 @@ var JwtMiddlewareStruct = jwt.GinJWTMiddleware{
 	PayloadFunc: func(data interface{}) jwt.MapClaims {
 		if v, ok := data.(*models.JWTTeam); ok {
 			return jwt.MapClaims{
-				identityKey: v.TeamName,
+				identityKey: v.Login,
 				"mode":      config.Conf.Mode,
+				"name":      v.TeamName,
+				"address":   v.Address,
 			}
 		}
 		return jwt.MapClaims{}
@@ -66,6 +68,8 @@ var JwtMiddlewareStruct = jwt.GinJWTMiddleware{
 		if routers.CheckPasswordHash(password, team.Hash) {
 			return &models.JWTTeam{
 				TeamName: userID,
+				Login:    team.Login,
+				Address:  team.Address,
 			}, nil
 		}
 
@@ -83,7 +87,7 @@ var JwtMiddlewareStruct = jwt.GinJWTMiddleware{
 			"message": message,
 		})
 	},
-	TokenLookup: "header: Authorization, query: token, cookie: jwt",
+	TokenLookup:   "header: Authorization, query: token, cookie: jwt",
 	TokenHeadName: "Bearer",
-	TimeFunc: time.Now,
+	TimeFunc:      time.Now,
 }

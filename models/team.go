@@ -34,4 +34,6 @@ type Flags struct {
 
 type JWTTeam struct {
 	TeamName string
+	Login    string
+	Address  string
 }
