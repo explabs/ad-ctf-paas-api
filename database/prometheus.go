@@ -32,7 +32,7 @@ type PrometheusQueryRange struct {
 	} `json:"data"`
 }
 
-func getPrometheusState(query string, time string) PrometheusQueryRange {
+func getPrometheusState(query string, time string) (PrometheusQueryRange, error) {
 	promAddr := os.Getenv("PROMETHEUS")
 	if promAddr == "" {
 		promAddr = "http://localhost:9090"
@@ -41,7 +41,7 @@ func getPrometheusState(query string, time string) PrometheusQueryRange {
 	req, err := http.NewRequest("GET", urlAddr, nil)
 	if err != nil {
 		log.Print(err)
-		os.Exit(1)
+		return PrometheusQueryRange{}, err
 	}
 
 	q := req.URL.Query()
@@ -54,23 +54,24 @@ func getPrometheusState(query string, time string) PrometheusQueryRange {
 	resp, reqErr := client.Do(req)
 	if reqErr != nil {
 		log.Println(reqErr)
+		return PrometheusQueryRange{}, reqErr
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return PrometheusQueryRange{}
+		return PrometheusQueryRange{}, err
 	}
 	var queryRanges PrometheusQueryRange
 	jsonErr := json.Unmarshal(body, &queryRanges)
 	if jsonErr != nil {
 		log.Println(jsonErr)
-		return PrometheusQueryRange{}
+		return PrometheusQueryRange{}, err
 	}
-	return queryRanges
+	return queryRanges, nil
 }
 
-func getPrometheusRange(query string, start string, end string) PrometheusQueryRange {
+func getPrometheusRange(query string, start string, end string) (PrometheusQueryRange, error) {
 	promAddr := os.Getenv("PROMETHEUS")
 	if promAddr == "" {
 		promAddr = "http://localhost:9090"
@@ -79,7 +80,7 @@ func getPrometheusRange(query string, start string, end string) PrometheusQueryR
 	req, err := http.NewRequest("GET", urlAddr, nil)
 	if err != nil {
 		log.Print(err)
-		os.Exit(1)
+		return PrometheusQueryRange{}, err
 	}
 
 	q := req.URL.Query()
@@ -89,25 +90,27 @@ func getPrometheusRange(query string, start string, end string) PrometheusQueryR
 	q.Add("step", config.Conf.RoundInterval)
 	req.URL.RawQuery = q.Encode()
 
-	fmt.Println(req.URL.String())
 	client := &http.Client{}
 	resp, reqErr := client.Do(req)
 	if reqErr != nil {
-		log.Println(reqErr)
+		log.Println("here")
+		return PrometheusQueryRange{}, reqErr
 	}
 	defer resp.Body.Close()
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return PrometheusQueryRange{}
+		return PrometheusQueryRange{}, err
 	}
+
 	var queryRanges PrometheusQueryRange
 	jsonErr := json.Unmarshal(body, &queryRanges)
 	if jsonErr != nil {
 		log.Println(jsonErr)
-		return PrometheusQueryRange{}
+		return PrometheusQueryRange{}, jsonErr
 	}
-	return queryRanges
+	return queryRanges, nil
 }
 
 type TeamHistory struct {
@@ -116,19 +119,22 @@ type TeamHistory struct {
 	TotalRounds   float64
 }
 
-func GetTeamHistory(teamName string) TeamHistory {
+func GetTeamHistory(teamName string) (TeamHistory, error) {
 	query := fmt.Sprintf("checker{team=\"%s\"}", teamName)
 	startTime, _ := GetStartTimeStamp()
 	shiftTime, _ := time.Parse(time.RFC3339, startTime)
 	log.Println(shiftTime)
 	shiftTime = shiftTime.Add(time.Second)
-	queryRanges := getPrometheusRange(query, shiftTime.Format(time.RFC3339), time.Now().Format(time.RFC3339))
+	queryRanges, err := getPrometheusRange(query, shiftTime.Format(time.RFC3339), time.Now().Format(time.RFC3339))
+	if err != nil {
+		return TeamHistory{}, err
+	}
 
 	teamHistory := TeamHistory{RoundsHistory: map[string]map[int]float64{}}
 	teamHistory.Sources = float64(len(queryRanges.Data.Result))
 	if teamHistory.Sources < 1 {
 		log.Println("No Data")
-		return TeamHistory{}
+		return TeamHistory{}, nil
 	}
 	teamHistory.TotalRounds = float64(len(queryRanges.Data.Result[0].Values))
 	log.Println(queryRanges.Data.Result[0].Metric.Team, queryRanges.Data.Result[0].Metric.Service)
@@ -146,19 +152,22 @@ func GetTeamHistory(teamName string) TeamHistory {
 		}
 	}
 	teamHistory.TotalRounds -= 1
-	return teamHistory
+	return teamHistory, nil
 }
 
-func GetTeamStatus(teamName string) (map[string]float64, float64) {
+func GetTeamStatus(teamName string) (map[string]float64, float64, error) {
 	query := fmt.Sprintf("checker{team=\"%s\"}", teamName)
 	//lastTime, _ := GetLastTimeStamp()
-	queryRanges := getPrometheusState(query, time.Now().Format(time.RFC3339))
+	queryRanges, err := getPrometheusState(query, time.Now().Format(time.RFC3339))
+	if err != nil {
+		return nil, 0, err
+	}
 	fmt.Println(queryRanges)
 	serviceStatus := map[string]float64{}
 	sources := float64(len(queryRanges.Data.Result))
 	if sources < 1 {
 		log.Println("No Data")
-		return nil, 0
+		return nil, 0, nil
 	}
 	log.Println(queryRanges.Data.Result[0].Metric.Team, queryRanges.Data.Result[0].Metric.Service)
 	for _, result := range queryRanges.Data.Result {
@@ -166,5 +175,5 @@ func GetTeamStatus(teamName string) (map[string]float64, float64) {
 		serviceStatus[result.Metric.Service] += float64(value)
 	}
 
-	return serviceStatus, sources
+	return serviceStatus, sources, nil
 }

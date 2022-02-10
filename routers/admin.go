@@ -12,7 +12,7 @@ import (
 func TeamsList(c *gin.Context) {
 	teams, dbErr := database.GetTeams()
 	if dbErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": dbErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -22,6 +22,11 @@ func TeamsList(c *gin.Context) {
 
 func DeleteTeams(c *gin.Context) {
 	team := c.Param("name")
+	dbErr := database.DeleteTeam(team)
+	if dbErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("team %s deleted", team),
 	})
@@ -29,7 +34,7 @@ func DeleteTeams(c *gin.Context) {
 
 type TeamsForAnsible struct {
 	IP        string `json:"ip"`
-	Netmask      string `json:"netmask"`
+	Netmask   string `json:"netmask"`
 	Mode      string `json:"mode"`
 	Name      string `json:"name"`
 	DHCPStart string `json:"dhcp_start"`
@@ -70,7 +75,7 @@ func prometheusManagerRequest(action string) (string, error) {
 	case "stop":
 		url = url + action
 	default:
-		return "",fmt.Errorf("bad action: %s", action)
+		return "", fmt.Errorf("bad action: %s", action)
 	}
 	req, err := http.NewRequest("GET", url, nil)
 	req.SetBasicAuth("admin", os.Getenv("ADMIN_PASS"))
@@ -83,28 +88,29 @@ func prometheusManagerRequest(action string) (string, error) {
 	return string(responseText), err
 }
 
-
-func RunPrometheusHandler(c *gin.Context){
+func RunPrometheusHandler(c *gin.Context) {
 	response, err := prometheusManagerRequest("start")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
 		return
 	}
-	if err = database.ChangeCheckerStatus(true); err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+	err = database.ChangeCheckerStatus(true)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"result": response})
 }
 
-func StopPrometheusHandler(c *gin.Context){
+func StopPrometheusHandler(c *gin.Context) {
 	response, err := prometheusManagerRequest("stop")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
 		return
 	}
-	if err = database.ChangeCheckerStatus(false); err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+	err = database.ChangeCheckerStatus(false)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"result": response})

@@ -22,6 +22,7 @@ func AddVpnTeam(team *models.Team, rawPassword string) error {
 		"password": {rawPassword},
 	})
 	if httpErr != nil {
+		log.Println("here")
 		log.Println(httpErr)
 		return httpErr
 	}
@@ -71,11 +72,10 @@ func (vpnRoute *VpnRoute) WriteTeamsRoutes() error {
 
 func GetVpnConfigHandler(c *gin.Context) {
 	user, _ := c.Get("id")
-	username := user.(*models.JWTTeam).TeamName
-	log.Println(user, username)
+	username := user.(*models.JWTTeam).Login
 	vpnConfig, err := DownloadVpnConfig(username)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
 		return
 	}
 	c.Data(200, "plain/text; charset=utf-8", []byte(vpnConfig))

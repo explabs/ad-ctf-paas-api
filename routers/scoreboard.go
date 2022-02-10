@@ -10,7 +10,11 @@ import (
 
 func ShowTeamStatus(c *gin.Context) {
 	teamName := c.Param("name")
-	teamStatus, sources := database.GetTeamStatus(teamName)
+	teamStatus, sources, err := database.GetTeamStatus(teamName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
+		return
+	}
 	result := map[string][]string{}
 	var status string
 	var totalServiceOKStatus = 0.0
@@ -61,7 +65,8 @@ func ShowScoreboard(c *gin.Context) {
 	var status string
 	teams, dbErr := database.GetTeams()
 	if dbErr != nil {
-		log.Println(dbErr)
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
+		return
 	}
 	services, _ := database.GetServices()
 	log.Println(services)
@@ -73,7 +78,12 @@ func ShowScoreboard(c *gin.Context) {
 		sTeam := ScoreboardTeamJson{
 			TeamName: team.Name,
 		}
-		teamHistory := database.GetTeamHistory(team.Name)
+		teamHistory, err := database.GetTeamHistory(team.Name)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
+			return
+		}
+
 		for serviceName, values := range teamHistory.RoundsHistory {
 			sService := ScoreboardServiceJson{}
 			var totalServiceOKStatus = 0.0

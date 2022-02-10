@@ -110,7 +110,7 @@ func FilterTeams(filter interface{}) ([]*models.TeamInfo, error) {
 }
 
 func DeleteTeam(name string) error {
-	filter := bson.D{primitive.E{Key: "name", Value: name}}
+	filter := bson.D{primitive.E{Key: "login", Value: name}}
 
 	res, err := collection.DeleteOne(ctx, filter)
 	if err != nil {

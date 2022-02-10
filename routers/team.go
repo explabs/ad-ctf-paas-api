@@ -100,21 +100,15 @@ func CreateTeam(c *gin.Context) {
 	}
 	dbErr = database.CreateTeam(dbTeam)
 	if dbErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr})
 		return
 	}
 
-	if err := AddVpnTeam(dbTeam, team.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"detail": hashErr.Error()})
+	vpnErr := AddVpnTeam(dbTeam, team.Password)
+	if vpnErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": vpnErr.Error()})
 		return
 	}
-	c.SetCookie("login",
-		slug.Make(team.Name),
-		60*60*24,
-		"/",
-		"localhost",
-		false,
-		false)
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("The team %s created", team.Name),
 	})
