@@ -12,9 +12,8 @@ import (
 	"os"
 )
 
-var collection *mongo.Collection
-var flags *mongo.Collection
-var services *mongo.Collection
+var collection, flags, services, scoreboard *mongo.Collection
+
 var ctx = context.TODO()
 
 func InitMongo() {
@@ -46,6 +45,7 @@ func InitMongo() {
 	collection = client.Database("ad").Collection("teams")
 	flags = client.Database("ad").Collection("flags")
 	services = client.Database("ad").Collection("services")
+	scoreboard = client.Database("ad").Collection("scoreboard")
 }
 
 func CreateTeam(team *models.Team) error {
@@ -193,4 +193,47 @@ func UploadServices(s []*models.Service) {
 		log.Println(err)
 	}
 	log.Println(insertManyResults)
+}
+
+func GetScoreboard() ([]models.Score, error) {
+	cur, err := scoreboard.Find(context.TODO(), bson.D{})
+	defer cur.Close(context.TODO())
+	if err != nil {
+		return []models.Score{}, err
+	}
+
+	var scoreboard []models.Score
+
+	for cur.Next(context.TODO()) {
+		//Create a value into which the single document can be decoded
+		var score models.Score
+		err := cur.Decode(&score)
+		if err != nil {
+			log.Fatal(err)
+		}
+		scoreboard = append(scoreboard, score)
+	}
+	if err := cur.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return scoreboard, nil
+}
+func GetTeamsScoreboard(teamName string) (models.Score, error) {
+	var teamsScore models.Score
+	err := scoreboard.FindOne(context.TODO(), bson.M{"name": teamName}).Decode(&teamsScore)
+	if err == mongo.ErrNoDocuments {
+		return models.Score{
+			Name:         teamName,
+			Round:        0,
+			Services:     map[string]models.ScoreService{},
+			LastServices: map[string]models.ScoreService{},
+			Score:        0,
+			LastScore:    0,
+		}, nil
+	}
+	if err != nil {
+		return models.Score{}, err
+	}
+	return teamsScore, nil
 }

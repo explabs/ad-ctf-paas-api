@@ -62,6 +62,15 @@ type ScoreboardServiceJson struct {
 }
 
 func ShowScoreboard(c *gin.Context) {
+	scoreboard, err := database.GetScoreboard()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"scoreboard": scoreboard})
+}
+
+func OldShowScoreboard(c *gin.Context) {
 	var status string
 	teams, dbErr := database.GetTeams()
 	if dbErr != nil {
