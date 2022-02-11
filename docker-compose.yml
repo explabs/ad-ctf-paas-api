@@ -1,5 +1,5 @@
 # Use root/example as user/password credentials
-version: '3.1'
+version: '3.7'
 
 services:
   api:
@@ -21,19 +21,30 @@ services:
     depends_on:
       - mongo
       - redis
+    networks:
+      - ad-ctf-paas-net
 
   mongo:
     image: mongo:5.0
-    container_name: up
+    container_name: mongo
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: ${ADMIN_PASS}
     ports:
       - "27017:27017"
+    networks:
+      - ad-ctf-paas-net
 
   redis:
     image: redis:6.2-alpine
     command: redis-server --requirepass ${ADMIN_PASS}
     ports:
       - "6379:6379"
+    networks:
+      - ad-ctf-paas-net
+
+networks:
+  ad-ctf-paas-net:
+    external: true
+    name: ad-ctf-paas-net
