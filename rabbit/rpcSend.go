@@ -23,12 +23,12 @@ func SendRPCMessage(queueName string, message string) string {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		queueName, // name
-		false,     // durable
-		false,     // delete when unused
-		true,      // exclusive
-		false,     // no-wait
-		nil,       // arguments
+		"",    // name
+		false, // durable
+		false, // delete when unused
+		true,  // exclusive
+		false, // no-wait
+		nil,   // arguments
 	)
 	alertOnError(err, "Failed to declare a queue")
 	msgs, err := ch.Consume(
