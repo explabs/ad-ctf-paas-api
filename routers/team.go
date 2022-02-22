@@ -32,12 +32,13 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func GetTeamInfo(c *gin.Context) {
-	team, err := database.GetTeam("")
+	user, _ := c.Get("id")
+	team, err := database.GetTeam(user.(*models.JWTTeam).TeamName)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"team": team[0]})
+	c.JSON(http.StatusOK, gin.H{"team": team})
 }
 
 func generateIp(number int) string {

@@ -12,6 +12,10 @@ type Score struct {
 }
 
 type ScoreService struct {
-	SLA   float64 `bson:"sla" json:"sla"`
-	State int     `bson:"state" json:"state"`
+	SLA    float64 `bson:"sla" json:"sla"`
+	State  int     `bson:"state" json:"state"`
+	Gained int     `bson:"gained" json:"gained"`
+	Lost   int     `bson:"lost" json:"lost"`
+	HP     int     `bson:"hp" json:"hp"`
+	Cost   int     `bson:"cost" json:"cost"`
 }

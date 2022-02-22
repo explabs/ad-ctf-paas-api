@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/explabs/ad-ctf-paas-api/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -12,7 +13,7 @@ import (
 	"os"
 )
 
-var collection, flags, services, scoreboard *mongo.Collection
+var collection, flags, services, scoreboard, configurations *mongo.Collection
 
 var ctx = context.TODO()
 
@@ -28,10 +29,10 @@ func InitMongo() {
 
 	mongoAddr := os.Getenv("MONGODB")
 	if mongoAddr == "" {
-		mongoAddr = "mongodb://localhost:27017"
+		mongoAddr = "localhost:27017"
 	}
-
-	clientOptions := options.Client().ApplyURI(mongoAddr).SetAuth(credential)
+	mongoURI := fmt.Sprintf("mongodb://%s", mongoAddr)
+	clientOptions := options.Client().ApplyURI(mongoURI).SetAuth(credential)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal(err)
@@ -46,6 +47,7 @@ func InitMongo() {
 	flags = client.Database("ad").Collection("flags")
 	services = client.Database("ad").Collection("services")
 	scoreboard = client.Database("ad").Collection("scoreboard")
+	configurations = client.Database("ad").Collection("scoreboard")
 }
 
 func CreateTeam(team *models.Team) error {
@@ -57,10 +59,15 @@ func GetTeams() ([]*models.TeamInfo, error) {
 	filter := bson.M{"login": bson.M{"$ne": "admin"}}
 	return FilterTeams(filter)
 }
-func GetTeam(login string) ([]*models.TeamInfo, error) {
+func GetTeam(login string) (*models.TeamInfo, error) {
 	// passing bson.D{{}} matches all documents in the collection
+	var team models.TeamInfo
 	filter := bson.M{"login": login}
-	return FilterTeams(filter)
+	err := collection.FindOne(ctx, filter).Decode(&team)
+	if err != nil {
+		return nil, err
+	}
+	return &team, err
 }
 func GetUsers() ([]*models.TeamInfo, error) {
 	// passing bson.D{{}} matches all documents in the collection
@@ -119,6 +126,13 @@ func DeleteTeam(name string) error {
 
 	if res.DeletedCount == 0 {
 		return errors.New("No teams were deleted")
+	}
+
+	filter = bson.D{primitive.E{Key: "name", Value: name}}
+
+	res, err = scoreboard.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
 	}
 
 	return nil

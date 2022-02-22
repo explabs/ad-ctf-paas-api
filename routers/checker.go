@@ -3,6 +3,7 @@ package routers
 import (
 	"fmt"
 	"github.com/explabs/ad-ctf-paas-api/database"
+	"github.com/explabs/ad-ctf-paas-api/rabbit"
 	"github.com/explabs/ad-ctf-paas-api/walker"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -31,4 +32,20 @@ func CheckerHandler(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "text/plain", []byte(data))
+}
+
+func RunChecker(c *gin.Context) {
+	if err := rabbit.SendMessage("checker", "{\"type\": \"start\"}"); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"checker": "started"})
+}
+
+func StopChecker(c *gin.Context) {
+	if err := rabbit.SendMessage("checker", "{\"type\": \"stop\"}"); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"checker": "stopped"})
 }

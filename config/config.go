@@ -14,21 +14,14 @@ var allowedModes = map[string]bool{
 }
 
 type Config struct {
-	Mode            string   `json:"mode"`
-	Network         string   `yaml:"network"`
-	CheckerPassword string   `yaml:"checker_password"`
-	RoundInterval   string   `yaml:"round_interval"`
-	ExploitInterval string   `yaml:"exploit_interval"`
-	Telegram        Telegram `yaml:"telegram"`
+	Mode            string `yaml:"mode"`
+	Network         string `yaml:"network"`
+	CheckerPassword string `yaml:"checker_password"`
+	RoundInterval   string `yaml:"round_interval"`
+	ExploitInterval string `yaml:"exploit_interval"`
 }
 
-type Telegram struct {
-	BotToken string `yaml:"bot_token"`
-	ChatID   string `yaml:"chat_id"`
-}
-
-
-func ReadConf(filename string) error {
+func LoadConfig(filename string) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err

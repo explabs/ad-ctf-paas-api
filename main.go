@@ -41,7 +41,7 @@ func addAdmin() {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	// load config data
-	err := config.ReadConf("config.yml")
+	err := config.LoadConfig("config.yml")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,6 +53,8 @@ func main() {
 	var sc config.ServicesInfo
 	sc.Load()
 	database.UploadServices(sc.Services)
+
+	database.UploadConfig(*config.Conf)
 
 	// add admin user to database
 	addAdmin()
@@ -89,16 +91,16 @@ func main() {
 		//services.GET("/teams/info", routers.CountTeamsHandler)
 		services.GET("/system/info", routers.InfoHandler)
 	}
-	basicAuthV1 := router.Group("/api/v1")
-	{
-		// routes for prometheus with basic auth
-		walker := basicAuthV1.Group("/game")
-		walker.Use(gin.BasicAuth(gin.Accounts{"checker": config.Conf.CheckerPassword}))
-		walker.GET("/checker", routers.CheckerHandler)
-		walker.GET("/news", routers.NewsHandler)
-		walker.GET("/exploit", routers.ExploitHandler)
-
-	}
+	//basicAuthV1 := router.Group("/api/v1")
+	//{
+	//	// routes for prometheus with basic auth
+	//	walker := basicAuthV1.Group("/game")
+	//	walker.Use(gin.BasicAuth(gin.Accounts{"checker": config.Conf.CheckerPassword}))
+	//	walker.GET("/checker", routers.CheckerHandler)
+	//	walker.GET("/news", routers.NewsHandler)
+	//	walker.GET("/exploit", routers.ExploitHandler)
+	//
+	//}
 	jwtV1 := router.Group("/api/v1")
 	jwtV1.Use(authMiddleware.MiddlewareFunc())
 	{
@@ -126,8 +128,8 @@ func main() {
 			admin.GET("/generate/variables", routers.GenerateVariables)
 			admin.GET("/generate/sshkeys", routers.SshKeyArchiveHandler)
 			admin.POST("/generate/prometheus", routers.GeneratePrometheus)
-			admin.POST("/prom/start", routers.RunPrometheusHandler)
-			admin.POST("/prom/stop", routers.StopPrometheusHandler)
+			admin.GET("/checker/start", routers.RunChecker)
+			admin.GET("/checker/stop", routers.StopChecker)
 			admin.GET("/reg/open", routers.OpenRegistrationHandler)
 			admin.GET("/reg/close", routers.CloseRegistrationHandler)
 		}

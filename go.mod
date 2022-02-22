@@ -11,6 +11,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.10.1
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.16.0 // indirect
+	github.com/rabbitmq/amqp091-go v1.3.0
 	github.com/zclconf/go-cty v1.9.1
 	go.mongodb.org/mongo-driver v1.7.3
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
