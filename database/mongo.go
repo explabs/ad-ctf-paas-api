@@ -47,7 +47,7 @@ func InitMongo() {
 	flags = client.Database("ad").Collection("flags")
 	services = client.Database("ad").Collection("services")
 	scoreboard = client.Database("ad").Collection("scoreboard")
-	configurations = client.Database("ad").Collection("scoreboard")
+	configurations = client.Database("ad").Collection("config")
 }
 
 func CreateTeam(team *models.Team) error {
