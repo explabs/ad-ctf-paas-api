@@ -45,10 +45,10 @@ func SendRPCMessage(queueName string, message string) string {
 	corrId := randomString(32)
 
 	err = ch.Publish(
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
+		"",        // exchange
+		queueName, // routing key
+		false,     // mandatory
+		false,     // immediate
 		amqp.Publishing{
 			ContentType:   "text/plain",
 			CorrelationId: corrId,
