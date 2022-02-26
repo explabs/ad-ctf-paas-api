@@ -49,11 +49,6 @@ func main() {
 	database.InitMongo()
 	database.InitRedis()
 
-	// add info about services to mongo
-	var sc config.ServicesInfo
-	sc.Load()
-	database.UploadServices(sc.Services)
-
 	database.UploadConfig(*config.Conf)
 
 	// add admin user to database

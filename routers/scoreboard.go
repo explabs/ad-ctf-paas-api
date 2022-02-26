@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"sort"
 )
 
 func ShowTeamStatus(c *gin.Context) {
@@ -70,85 +69,85 @@ func ShowScoreboard(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"scoreboard": scoreboard})
 }
 
-func OldShowScoreboard(c *gin.Context) {
-	var status string
-	teams, dbErr := database.GetTeams()
-	if dbErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
-		return
-	}
-	services, _ := database.GetServices()
-	log.Println(services)
-	var scoreboard Scoreboard
-	for _, team := range teams {
-		var serviceNum = 0.0
-		var totalStatus = 0.0
-		var totalScore = 0.0
-		sTeam := ScoreboardTeamJson{
-			TeamName: team.Name,
-		}
-		teamHistory, err := database.GetTeamHistory(team.Name)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
-			return
-		}
-
-		for serviceName, values := range teamHistory.RoundsHistory {
-			sService := ScoreboardServiceJson{}
-			var totalServiceOKStatus = 0.0
-			for i := 0; i < len(values)-1; i++ {
-				if values[i] == teamHistory.Sources {
-					status = "OK"
-					totalServiceOKStatus += 1
-				} else if values[i] == 0 {
-					status = "DOWN"
-				} else if values[i] < teamHistory.Sources {
-					status = "MUMBLE"
-				}
-				sService.Name = serviceName
-				sService.Value = status
-			}
-			serviceNum += 1
-			totalStatus += totalServiceOKStatus / teamHistory.TotalRounds
-			sService.SLA = totalServiceOKStatus / teamHistory.TotalRounds * 100
-
-			flags := database.GetServiceFlagsStats(team.Name, serviceName)
-			sService.Gained = flags.Gained
-			sService.Lost = flags.Lost
-			sService.Points = flags.Gained - flags.Lost
-
-			for _, service := range services {
-				log.Println(service)
-				if service.Name == serviceName {
-					sService.Points = service.HP + sService.Points*service.Cost
-					break
-				}
-			}
-
-			if sService.Points >= 0 {
-				sService.ServiceScore = sService.Points * (totalServiceOKStatus / teamHistory.TotalRounds)
-			} else if sService.Points < 0 {
-				sService.ServiceScore = sService.Points * (1 - totalServiceOKStatus/teamHistory.TotalRounds)
-			}
-
-			totalScore += sService.ServiceScore
-
-			sTeam.Services = append(sTeam.Services, sService)
-		}
-		sTeam.Score = totalScore / serviceNum
-		sTeam.SLA = totalStatus / serviceNum * 100
-		scoreboard.Teams = append(scoreboard.Teams, sTeam)
-	}
-
-	for _, service := range services {
-		scoreboard.Services = append(scoreboard.Services, Services{
-			Name: service.Name,
-			HP:   service.HP,
-			Cost: service.Cost,
-		})
-	}
-	sort.Slice(scoreboard.Teams, func(i, j int) bool {
-		return scoreboard.Teams[i].Score > scoreboard.Teams[j].Score
-	})
-	c.JSON(http.StatusOK, gin.H{"scoreboard": scoreboard})
-}
+//func OldShowScoreboard(c *gin.Context) {
+//	var status string
+//	teams, dbErr := database.GetTeams()
+//	if dbErr != nil {
+//		c.JSON(http.StatusBadRequest, gin.H{"detail": dbErr.Error()})
+//		return
+//	}
+//	services, _ := database.GetServices()
+//	log.Println(services)
+//	var scoreboard Scoreboard
+//	for _, team := range teams {
+//		var serviceNum = 0.0
+//		var totalStatus = 0.0
+//		var totalScore = 0.0
+//		sTeam := ScoreboardTeamJson{
+//			TeamName: team.Name,
+//		}
+//		teamHistory, err := database.GetTeamHistory(team.Name)
+//		if err != nil {
+//			c.JSON(http.StatusBadRequest, gin.H{"detail": err.Error()})
+//			return
+//		}
+//
+//		for serviceName, values := range teamHistory.RoundsHistory {
+//			sService := ScoreboardServiceJson{}
+//			var totalServiceOKStatus = 0.0
+//			for i := 0; i < len(values)-1; i++ {
+//				if values[i] == teamHistory.Sources {
+//					status = "OK"
+//					totalServiceOKStatus += 1
+//				} else if values[i] == 0 {
+//					status = "DOWN"
+//				} else if values[i] < teamHistory.Sources {
+//					status = "MUMBLE"
+//				}
+//				sService.Name = serviceName
+//				sService.Value = status
+//			}
+//			serviceNum += 1
+//			totalStatus += totalServiceOKStatus / teamHistory.TotalRounds
+//			sService.SLA = totalServiceOKStatus / teamHistory.TotalRounds * 100
+//
+//			flags := database.GetServiceFlagsStats(team.Name, serviceName)
+//			sService.Gained = flags.Gained
+//			sService.Lost = flags.Lost
+//			sService.Points = flags.Gained - flags.Lost
+//
+//			for _, service := range services {
+//				log.Println(service)
+//				if service.Name == serviceName {
+//					sService.Points = service.HP + sService.Points*service.Cost
+//					break
+//				}
+//			}
+//
+//			if sService.Points >= 0 {
+//				sService.ServiceScore = sService.Points * (totalServiceOKStatus / teamHistory.TotalRounds)
+//			} else if sService.Points < 0 {
+//				sService.ServiceScore = sService.Points * (1 - totalServiceOKStatus/teamHistory.TotalRounds)
+//			}
+//
+//			totalScore += sService.ServiceScore
+//
+//			sTeam.Services = append(sTeam.Services, sService)
+//		}
+//		sTeam.Score = totalScore / serviceNum
+//		sTeam.SLA = totalStatus / serviceNum * 100
+//		scoreboard.Teams = append(scoreboard.Teams, sTeam)
+//	}
+//
+//	for _, service := range services {
+//		scoreboard.Services = append(scoreboard.Services, Services{
+//			Name: service.Name,
+//			HP:   service.HP,
+//			Cost: service.Cost,
+//		})
+//	}
+//	sort.Slice(scoreboard.Teams, func(i, j int) bool {
+//		return scoreboard.Teams[i].Score > scoreboard.Teams[j].Score
+//	})
+//	c.JSON(http.StatusOK, gin.H{"scoreboard": scoreboard})
+//}

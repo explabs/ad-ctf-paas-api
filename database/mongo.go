@@ -13,7 +13,7 @@ import (
 	"os"
 )
 
-var collection, flags, services, scoreboard, configurations *mongo.Collection
+var collection, flags, scoreboard, configurations *mongo.Collection
 
 var ctx = context.TODO()
 
@@ -45,7 +45,6 @@ func InitMongo() {
 
 	collection = client.Database("ad").Collection("teams")
 	flags = client.Database("ad").Collection("flags")
-	services = client.Database("ad").Collection("services")
 	scoreboard = client.Database("ad").Collection("scoreboard")
 	configurations = client.Database("ad").Collection("config")
 }
@@ -172,41 +171,6 @@ func GetServiceFlagsStats(team, service string) (f ServiceFlagsStats) {
 	})
 	res.Decode(&f)
 	return f
-}
-
-func GetServices() (s []*models.Service, err error) {
-	cur, err := services.Find(ctx, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-
-	for cur.Next(ctx) {
-		var service models.Service
-		err := cur.Decode(&service)
-		if err != nil {
-			return s, err
-		}
-
-		s = append(s, &service)
-	}
-
-	if err := cur.Err(); err != nil {
-		return s, err
-	}
-	return s, nil
-}
-
-func UploadServices(s []*models.Service) {
-	var si []interface{}
-	for _, elem := range s {
-		si = append(si, *elem)
-	}
-	services.DeleteMany(ctx, bson.M{})
-	insertManyResults, err := services.InsertMany(ctx, si)
-	if err != nil {
-		log.Println(err)
-	}
-	log.Println(insertManyResults)
 }
 
 func GetScoreboard() ([]models.Score, error) {
