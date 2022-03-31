@@ -197,12 +197,25 @@ func GetScoreboard() ([]models.Score, error) {
 
 	return scoreboard, nil
 }
-func GetTeamsScoreboard(teamName string) (models.Score, error) {
+func GetTeamName(login string) (string, error) {
+	team, err := GetTeam(login)
+	if err != nil {
+		return "", err
+	}
+	return team.Name, nil
+}
+
+func GetTeamsScoreboard(teamLogin string) (models.Score, error) {
 	var teamsScore models.Score
-	err := scoreboard.FindOne(context.TODO(), bson.M{"name": teamName}).Decode(&teamsScore)
+	err := scoreboard.FindOne(context.TODO(), bson.M{"login": teamLogin}).Decode(&teamsScore)
 	if err == mongo.ErrNoDocuments {
+		teamName, err := GetTeamName(teamLogin)
+		if err != nil {
+			return models.Score{}, err
+		}
 		return models.Score{
 			Name:         teamName,
+			Login:        teamLogin,
 			Round:        0,
 			Services:     map[string]models.ScoreService{},
 			LastServices: map[string]models.ScoreService{},

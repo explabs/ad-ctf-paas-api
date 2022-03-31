@@ -28,3 +28,6 @@ Run Api use golang
 ```
 go run main.go
 ```
+
+## Routes
+{{api}}/api/v1/scoreboard

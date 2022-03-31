@@ -1,10 +1,13 @@
 package routers
 
 import (
+	"fmt"
 	"github.com/explabs/ad-ctf-paas-api/database"
+	"github.com/explabs/ad-ctf-paas-api/models"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"sort"
 )
 
 func ShowTeamStatus(c *gin.Context) {
@@ -60,13 +63,57 @@ type ScoreboardServiceJson struct {
 	ServiceScore float64 `json:"score"`
 }
 
+func sortScore(scoreboard []models.Score) []models.Score {
+	sort.SliceStable(scoreboard, func(i, j int) bool {
+		return scoreboard[i].Score < scoreboard[i].Score
+	})
+	return scoreboard
+}
+
+func sortLastScore(scoreboard []models.Score) []models.Score {
+	sort.SliceStable(scoreboard, func(i, j int) bool {
+		return scoreboard[i].LastScore < scoreboard[i].LastScore
+	})
+	return scoreboard
+}
+func getPreviousPlace(login string, lastScoreboard []models.Score) int {
+	for i, score := range lastScoreboard {
+		if score.Name == login {
+			return i
+		}
+	}
+	return -1
+}
+
+func generateFinalScore(scoreboard []models.Score) []models.OutputScoreboard {
+	var outputScore []models.OutputScoreboard
+	actualScore := sortScore(scoreboard)
+	lastScore := sortLastScore(scoreboard)
+	for i, score := range actualScore {
+		lastPlace := getPreviousPlace(score.Name, lastScore)
+		outputScore = append(outputScore, models.OutputScoreboard{
+			Name:         score.Name,
+			Login:        score.Login,
+			Place:        i + 1,
+			ChangedPlace: lastPlace - i,
+			Round:        score.Round,
+			Services:     score.Services,
+			SLA:          score.SLA,
+			Score:        score.Score,
+		})
+	}
+	return outputScore
+}
+
 func ShowScoreboard(c *gin.Context) {
 	scoreboard, err := database.GetScoreboard()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": err})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"scoreboard": scoreboard})
+	fmt.Println("score", scoreboard)
+	outScoreboard := generateFinalScore(scoreboard)
+	c.JSON(http.StatusOK, gin.H{"scoreboard": outScoreboard})
 }
 
 //func OldShowScoreboard(c *gin.Context) {

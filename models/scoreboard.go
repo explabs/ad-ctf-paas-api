@@ -2,6 +2,7 @@ package models
 
 type Score struct {
 	Name         string                  `bson:"name" json:"name"`
+	Login        string                  `bson:"login"`
 	Round        int                     `bson:"round" json:"round"`
 	Services     map[string]ScoreService `bson:"services" json:"services"`
 	LastServices map[string]ScoreService `bson:"last_services" json:"last_services"`
@@ -18,4 +19,15 @@ type ScoreService struct {
 	Lost   int     `bson:"lost" json:"lost"`
 	HP     int     `bson:"hp" json:"hp"`
 	Cost   int     `bson:"cost" json:"cost"`
+}
+
+type OutputScoreboard struct {
+	Name         string                  `json:"name"`
+	Login        string                  `json:"login"`
+	Place        int                     `json:"place"`
+	ChangedPlace int                     `json:"changed_place"`
+	Round        int                     `json:"round"`
+	Services     map[string]ScoreService `json:"services"`
+	SLA          float64                 `json:"sla"`
+	Score        float64                 `json:"score"`
 }
