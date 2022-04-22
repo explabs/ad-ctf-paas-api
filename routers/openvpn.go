@@ -53,9 +53,7 @@ func DownloadVpnConfig(username string) (string, error) {
 		log.Fatal(err)
 	}
 
-	vpnConfig := string(responseData)
-
-	return vpnConfig, nil
+	return string(responseData), nil
 }
 
 func (vpnRoute *VpnRoute) WriteTeamsRoutes() error {

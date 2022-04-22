@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -109,11 +110,12 @@ func CreateTeam(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"detail": hashErr.Error()})
 		return
 	}
-
+	login := slug.Make(team.Name)
+	login = strings.Replace(login, "-", "_", -1)
 	dbTeam := &models.Team{
 		ID:        primitive.NewObjectID(),
 		Name:      team.Name,
-		Login:     slug.Make(team.Name),
+		Login:     login,
 		Address:   ipAddress,
 		Hash:      hash,
 		SshPubKey: team.SshPubKey,
@@ -133,6 +135,7 @@ func CreateTeam(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("The team %s created", team.Name),
+		"login":   login,
 	})
 }
 

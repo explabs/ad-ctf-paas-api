@@ -50,7 +50,9 @@ var JwtMiddlewareStruct = jwt.GinJWTMiddleware{
 	IdentityHandler: func(c *gin.Context) interface{} {
 		claims := jwt.ExtractClaims(c)
 		return &models.JWTTeam{
-			TeamName: claims[identityKey].(string),
+			Login:    claims[identityKey].(string),
+			TeamName: claims["name"].(string),
+			Address:  claims["address"].(string),
 		}
 	},
 	Authenticator: func(c *gin.Context) (interface{}, error) {
